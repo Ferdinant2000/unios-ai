@@ -81,7 +81,7 @@ export default function LandingPage() {
         </section>
 
         <footer className="border-t border-slate-200 dark:border-white/5 py-8 text-center text-xs text-slate-400 dark:text-zinc-500">
-          UniOS AI · HEMIS · Next.js 14 + Tailwind
+          {t("footerCredit")}
         </footer>
       </div>
     </main>

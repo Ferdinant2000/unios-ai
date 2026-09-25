@@ -222,7 +222,7 @@ export default function LecturePage() {
                 <div className="flex items-center gap-5">
                   <button
                     onClick={() => setPlaying((prev) => !prev)}
-                    aria-label={playing ? "Pause" : "Play"}
+                    aria-label={playing ? t("pause") : t("play")}
                     className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg shadow-purple-500/25 transition-all duration-150 hover:scale-[1.04] active:scale-95"
                   >
                     {playing ? (

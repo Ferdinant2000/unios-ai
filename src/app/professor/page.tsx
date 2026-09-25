@@ -33,6 +33,7 @@ const STAT_ICONS = [Radio, Users, TrendingUp, BarChart3];
 
 export default function ProfessorDashboard() {
   const { t } = useLanguage();
+  const [firstName, ...lastNameParts] = PROFESSOR.name.split(" ");
 
   const statLabels = [
     t("activeCourses"),
@@ -41,6 +42,11 @@ export default function ProfessorDashboard() {
     t("lecturesHeld"),
   ];
   const statValues = [String(COURSES.length), "184", "92%", "12"];
+  const confusedTopics = [
+    t("topicCrossPrice"),
+    t("topicGradientVanishing"),
+    t("topicBatchSize"),
+  ];
 
   return (
     <main className="min-h-screen">
@@ -54,7 +60,7 @@ export default function ProfessorDashboard() {
                 {t("professor")}
               </p>
               <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white md:text-4xl">
-                Акмал <span className="text-gradient">Рахимов</span>
+                {firstName} <span className="text-gradient">{lastNameParts.join(" ")}</span>
               </h1>
               <p className="mt-2 text-sm text-slate-400 dark:text-zinc-500">
                 {PROFESSOR.hemisId}
@@ -174,7 +180,7 @@ export default function ProfessorDashboard() {
             <GlassCard className="mt-4 flex flex-col gap-5 p-5 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="text-sm font-bold text-slate-900 dark:text-white">
-                  {t("analyticsHeading")} · «Нейронные сети»
+                  {t("analyticsHeading")} · {t("neuralNetworks")}
                 </p>
                 <p className="mt-1 text-xs text-slate-400 dark:text-zinc-400">
                   {t("analyticsText")}
@@ -190,7 +196,7 @@ export default function ProfessorDashboard() {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {CLASSROOM_ANALYTICS.confusedTopics.map((topic) => (
+                  {confusedTopics.map((topic) => (
                     <span
                       key={topic}
                       className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-600 dark:text-amber-300"

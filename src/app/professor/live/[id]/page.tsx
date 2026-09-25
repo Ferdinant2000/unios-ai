@@ -52,7 +52,7 @@ export default function LiveLecturePage() {
   useEffect(() => {
     setFeed(
       [
-        t("feed1", { topic: "Затухание градиента" }),
+        t("feed1", { topic: t("topicGradientVanishing") }),
         t("feed6", { n: 18 }),
         t("feed7", { topic: "Cross-price elasticity" }),
       ].map((text, i) => ({ id: i, text, time: nowTime() })),
@@ -77,7 +77,8 @@ export default function LiveLecturePage() {
       if (tick % 3 === 0) {
         const templates = [t("feed2"), t("feed3"), t("feed4"), t("feed5")];
         const template = templates[tick % templates.length];
-        const topic = comprehension > 90 ? "Batch size" : "Cross-price elasticity";
+        const topic =
+          comprehension > 90 ? t("topicBatchSize") : t("topicCrossPrice");
         const text = template
           .replace("{topic}", topic)
           .replace("{dir}", Math.random() > 0.5 ? t("dirUp") : t("dirDown"));
@@ -112,7 +113,8 @@ export default function LiveLecturePage() {
   const circumference = 2 * Math.PI * ringRadius;
   const comprehensionOffset = circumference * (1 - comprehension / 100);
 
-  const currentTopic = comprehension > 90 ? "Batch size" : "Cross-price elasticity";
+  const currentTopic =
+    comprehension > 90 ? t("topicBatchSize") : t("topicCrossPrice");
 
   const handleGenerateExplanation = useCallback(() => {
     if (generating) return;
@@ -144,9 +146,9 @@ export default function LiveLecturePage() {
   }, [t]);
 
   const topics = [
-    { name: "Cross-price elasticity", meta: t("wrongAnswers") },
-    { name: "Затухание градиента", meta: t("repeats") },
-    { name: "Batch size", meta: t("repeats") },
+    { name: t("topicCrossPrice"), meta: t("wrongAnswers") },
+    { name: t("topicGradientVanishing"), meta: t("repeats") },
+    { name: t("topicBatchSize"), meta: t("repeats") },
   ];
 
   const integrationRows = [

@@ -25,6 +25,7 @@ const ru = {
   featureAnalyticsTitle: "Аналитика преподавателя",
   featureAnalyticsText:
     "Live-виджет понимания аудитории: какие концепты вызвали трудность у студентов — прямо в HEMIS.",
+  footerCredit: "UniOS AI · HEMIS · Next.js 14 + Tailwind",
 
   // Student
   goodDay: "Добрый день",
@@ -42,6 +43,12 @@ const ru = {
   integration: "Интеграция",
   hemisSyncText: "Аудиозаписи лекций, оценки и расписание синхронизируются автоматически.",
   lastSync: "Последняя синхронизация: 10 минут назад",
+  dayMon: "Пн",
+  dayTue: "Вт",
+  dayWed: "Ср",
+  dayThu: "Чт",
+  dayFri: "Пт",
+  daySat: "Сб",
 
   // Professor
   startLive: "Начать Live-лекцию",
@@ -57,6 +64,10 @@ const ru = {
   analyticsHeading: "Аналитика усвоения (Live)",
   analyticsText: "На основе реакций и вопросов студентов в реальном времени.",
   comprehensionBig: "усвоение материала",
+  neuralNetworks: "Нейронные сети",
+  topicCrossPrice: "Cross-price elasticity",
+  topicGradientVanishing: "Затухание градиента",
+  topicBatchSize: "Batch size",
 
   // Lecture / chat
   aiListening: "ИИ: слушает лекцию",
@@ -76,6 +87,8 @@ const ru = {
   send: "Отправить",
   errorMsg: "Что-то пошло не так. Попробуй ещё раз.",
   answerFallback: "Не удалось получить ответ.",
+  play: "Воспроизвести",
+  pause: "Пауза",
 
   // Live
   liveTag: "LIVE: {title}",
@@ -151,6 +164,7 @@ const uz: Record<TranslationKey, string> = {
   featureAnalyticsTitle: "O'qituvchi analitikasi",
   featureAnalyticsText:
     "Auditoriya tushunishini jonli ko'rsatkich: talabalarga qaysi mavzular qiyin bo'lgani — to'g'ridan-to'g'ri HEMISda.",
+  footerCredit: "UniOS AI · HEMIS · Next.js 14 + Tailwind",
 
   goodDay: "Xayrli kun",
   subjectsCount: "Fanlar",
@@ -167,6 +181,12 @@ const uz: Record<TranslationKey, string> = {
   integration: "Integratsiya",
   hemisSyncText: "Ma'ruza yozuvlari, baholar va jadval avtomatik sinxronlanadi.",
   lastSync: "Oxirgi sinxronlash: 10 daqiqa oldin",
+  dayMon: "Du",
+  dayTue: "Se",
+  dayWed: "Chor",
+  dayThu: "Pay",
+  dayFri: "Ju",
+  daySat: "Sha",
 
   startLive: "Jonli ma'ruzani boshlash",
   activeCourses: "Faol kurslar",
@@ -181,6 +201,10 @@ const uz: Record<TranslationKey, string> = {
   analyticsHeading: "O'zlashtirish analitikasi (Jonli)",
   analyticsText: "Talabalarning real vaqtdagi reaksiyalari va savollari asosida.",
   comprehensionBig: "material o'zlashtirildi",
+  neuralNetworks: "Neyron tarmoqlar",
+  topicCrossPrice: "Cross-price elasticity",
+  topicGradientVanishing: "Gradient so'nishi",
+  topicBatchSize: "Batch size",
 
   aiListening: "AI: ma'ruzani tinglayapti",
   askLecture: "Ask the Lecture",
@@ -198,6 +222,8 @@ const uz: Record<TranslationKey, string> = {
   send: "Yuborish",
   errorMsg: "Xatolik yuz berdi. Qayta urinib ko'ring.",
   answerFallback: "Javob olinmadi.",
+  play: "Ijro etish",
+  pause: "Pauza",
 
   liveTag: "JONLI: {title}",
   recording: "Yozuv davom etmoqda",
@@ -268,6 +294,7 @@ const en: Record<TranslationKey, string> = {
   featureAnalyticsTitle: "Professor analytics",
   featureAnalyticsText:
     "A live comprehension widget: which concepts confused your students — right inside HEMIS.",
+  footerCredit: "UniOS AI · HEMIS · Next.js 14 + Tailwind",
 
   goodDay: "Good day",
   subjectsCount: "Subjects",
@@ -284,6 +311,12 @@ const en: Record<TranslationKey, string> = {
   integration: "Integration",
   hemisSyncText: "Lecture recordings, grades and the schedule are synced automatically.",
   lastSync: "Last sync: 10 minutes ago",
+  dayMon: "Mon",
+  dayTue: "Tue",
+  dayWed: "Wed",
+  dayThu: "Thu",
+  dayFri: "Fri",
+  daySat: "Sat",
 
   startLive: "Start Live lecture",
   activeCourses: "Active courses",
@@ -298,6 +331,10 @@ const en: Record<TranslationKey, string> = {
   analyticsHeading: "Learning analytics (Live)",
   analyticsText: "Based on real-time student reactions and questions.",
   comprehensionBig: "material grasped",
+  neuralNetworks: "Neural Networks",
+  topicCrossPrice: "Cross-price elasticity",
+  topicGradientVanishing: "Vanishing gradient",
+  topicBatchSize: "Batch size",
 
   aiListening: "AI: listening to the lecture",
   askLecture: "Ask the Lecture",
@@ -315,6 +352,8 @@ const en: Record<TranslationKey, string> = {
   send: "Send",
   errorMsg: "Something went wrong. Try again.",
   answerFallback: "Could not get an answer.",
+  play: "Play",
+  pause: "Pause",
 
   liveTag: "LIVE: {title}",
   recording: "Recording",

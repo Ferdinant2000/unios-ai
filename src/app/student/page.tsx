@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   BookOpen,
   CheckCircle2,
@@ -29,18 +30,18 @@ import {
 } from "@/lib/mock-hemis";
 
 const GPA_BARS = [
-  { label: "AI", value: 74, score: "92%" },
-  { label: "ECO", value: 62, score: "84%" },
-  { label: "DB", value: 55, score: "78%" },
+  { label: "AI", percentage: 92, score: "92%" },
+  { label: "ECO", percentage: 84, score: "84%" },
+  { label: "DB", percentage: 78, score: "78%" },
 ];
-
-const WEEK_TALKS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const STAT_ICONS = [BookOpen, Clock, CheckCircle2, MessageSquareText];
 
 export default function StudentDashboard() {
   const { t } = useLanguage();
   const recentLectures = [...LECTURES].slice(0, 3);
+  const weekDays = [t("dayMon"), t("dayTue"), t("dayWed"), t("dayThu"), t("dayFri"), t("daySat")];
+  const [firstName, ...lastNameParts] = STUDENT.name.split(" ");
 
   const statLabels = [
     t("subjectsCount"),
@@ -61,7 +62,7 @@ export default function StudentDashboard() {
             {t("goodDay")},
           </p>
           <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white md:text-4xl">
-            Фирдавсбек <span className="text-gradient">Комолитдинов</span>
+            {firstName} <span className="text-gradient">{lastNameParts.join(" ")}</span>
           </h1>
           <p className="mt-2 text-sm text-slate-400 dark:text-zinc-500">
             {STUDENT.hemisId}
@@ -162,8 +163,8 @@ export default function StudentDashboard() {
                       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500/20 to-indigo-500/20 text-sky-600 dark:text-sky-300">
                         <GraduationCap className="h-5 w-5" />
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
+                      <div className="min-w-0 flex-1 pr-2">
+                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
                           {lecture.title}
                         </p>
                         <p className="mt-0.5 truncate text-xs text-slate-400 dark:text-zinc-500">
@@ -190,24 +191,34 @@ export default function StudentDashboard() {
               </FadeIn>
               <FadeIn delay={0.05}>
                 <GlassCard className="mt-4">
-                  <div className="flex h-32 items-end justify-around gap-3 border-b border-slate-200 pb-2 dark:border-white/10">
-                    {GPA_BARS.map((bar) => (
-                      <div key={bar.label} className="flex w-full flex-col items-center gap-2">
+                  <div className="flex h-40 items-end justify-around gap-3 border-b border-slate-200 pb-2 sm:h-48 dark:border-white/10">
+                    {GPA_BARS.map((bar, index) => (
+                      <div
+                        key={bar.label}
+                        className="flex h-full w-full flex-col items-center justify-end gap-2"
+                      >
                         <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-400">
                           {bar.score}
                         </span>
-                        <div
-                          className="w-full rounded-t-lg bg-gradient-to-t from-blue-600/80 to-purple-500/80"
-                          style={{ height: `${bar.value}%` }}
+                        <motion.div
+                          className="w-full origin-bottom rounded-t-lg bg-gradient-to-t from-blue-600 via-indigo-600 to-purple-500 shadow-md shadow-purple-500/20"
+                          style={{ height: `${bar.percentage}%` }}
+                          initial={{ scaleY: 0 }}
+                          animate={{ scaleY: 1 }}
+                          transition={{
+                            duration: 0.7,
+                            delay: index * 0.1,
+                            ease: "easeOut",
+                          }}
                         />
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500">
+                        <span className="pb-1 text-[10px] font-bold text-slate-400 dark:text-zinc-500">
                           {bar.label}
                         </span>
                       </div>
                     ))}
                   </div>
                   <div className="mt-4 flex justify-around text-[11px] text-slate-400 dark:text-zinc-500">
-                    {WEEK_TALKS.map((day) => (
+                    {weekDays.map((day) => (
                       <span key={day}>{day}</span>
                     ))}
                   </div>
