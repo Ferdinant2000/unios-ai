@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  buildLectureAnswer,
-  getLectureById,
-} from "@/lib/mock-hemis";
-
-const delay = (milliseconds: number) =>
-  new Promise((resolve) => setTimeout(resolve, milliseconds));
+import { getLectureById } from "@/lib/mock-hemis";
+import { askGroqAboutLecture } from "@/lib/groq";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
@@ -14,8 +9,6 @@ export async function POST(request: NextRequest) {
     typeof body?.question === "string" ? body.question.trim() : "";
   const lectureId =
     typeof body?.lectureId === "string" ? body.lectureId.trim() : "";
-
-  await delay(700 + Math.random() * 900);
 
   if (!question || !lectureId) {
     return NextResponse.json(
@@ -32,7 +25,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { answer, timestampRef } = buildLectureAnswer(lecture, question);
+  const { answer, timestampRef } = await askGroqAboutLecture(lecture, question);
 
   return NextResponse.json({ answer, timestampRef });
 }
