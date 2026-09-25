@@ -22,3 +22,6 @@ yarn-error.log*
 
 # env files
 .env*
+
+# firebase cli cache
+.firebase/

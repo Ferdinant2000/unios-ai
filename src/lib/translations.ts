@@ -27,6 +27,120 @@ const ru = {
     "Live-виджет понимания аудитории: какие концепты вызвали трудность у студентов — прямо в HEMIS.",
   footerCredit: "UniOS AI · HEMIS · Next.js 14 + Tailwind",
 
+  // Presentation — UniOS concept
+  pzProblemTag: "01 · MUAMMO",
+  pzProblemHeading: "Сегодня обучение разбито на несколько систем и ручных процессов.",
+  pzProblemTagline: "Профессор + Студент + Университет → Единая интеллектуальная экосистема",
+  pzColTalaba: "Студент",
+  pzColProfessor: "Преподаватель",
+  pzColUniversitet: "Университет",
+  pzP1: "Необходимость работать с несколькими платформами",
+  pzP2: "Разрозненные и беспорядочные учебные материалы",
+  pzP3: "Вынужденный выбор между конспектом и прослушиванием",
+  pzP4: "Сложно объективно оценить свою успеваемость",
+  pzP5: "Много времени уходит на подготовку к лекциям",
+  pzP6: "Создание материалов и тестов вручную",
+  pzP7: "Нагрузка по проверке заданий по одному",
+  pzP8: "Не хватает времени следить за каждым студентом",
+  pzP9: "Данные разбросаны по разным системам",
+  pzP10: "Ограниченные возможности анализа и аналитики",
+  pzP11: "Академические проблемы выявляются слишком поздно",
+  pzP12: "Данные для решений собираются вручную",
+  pzResult: "Результат: теряется время • данные разрознены • снижается уровень индивидуализации",
+
+  pzSolutionTag: "02 · YECHIM",
+  pzSolutionHeading:
+    "Что мы строим? Мы строим умный AI-слой поверх уже существующей образовательной инфраструктуры.",
+  pzExistingInfra: "Существующая инфраструктура",
+  pzExistingInfraText: "HEMIS / LMS — данные университета (профессора и студенты)",
+  pzUniosLayer: "UniOS AI",
+  pzUniosLayerText: "Слой интеграции и ИИ: автоматический анализ и персональный помощник",
+  pzSmartValue: "Умная ценность",
+  pzValueIntegration: "Интеграция",
+  pzValueIndividual: "Индивидуализация",
+  pzValueAnalytics: "Анализ и аналитика",
+
+  pzStudentsTag: "03 · TALABALAR UCHUN",
+  pzStudentsTitle: "Для студентов",
+  pzStudentsSubtitle:
+    "Персональный AI-помощник на всём пути обучения — не заменяет платформу, а работает рядом с ней.",
+  pzS1Title: "Живая лекция",
+  pzS1Text:
+    "STT-технология превращает речь профессора в текст — структурированный конспект и учебные материалы.",
+  pzS2Title: "AI-репетитор",
+  pzS2Text: "Глубоко объясняет темы, мгновенно отвечает на вопросы студента и разбирает ошибки.",
+  pzS3Title: "Задания",
+  pzS3Text:
+    "Помогает правильно понимать и системно выполнять домашние и практические задания.",
+  pzS4Title: "Развитие",
+  pzS4Text:
+    "Непрерывно отслеживает динамику оценок, посещаемости и освоения предметов.",
+
+  pzProfsTag: "04 · PROFESSORLAR UCHUN",
+  pzProfsTitle: "Для преподавателей",
+  pzProfsSubtitle:
+    "Не заменяет профессора — экономит его время и сокращает время подготовки и оценивания.",
+  pzR1Title: "Материал из лекции",
+  pzR1Text:
+    "Автоматически создаёт конспект, ключевые мысли, практические примеры и дополнительные материалы.",
+  pzR2Title: "Тесты через AI",
+  pzR2Text:
+    "За считанные секунды формирует контрольные тесты, банк вопросов и интерактивные упражнения.",
+  pzR3Title: "Оценивание",
+  pzR3Text:
+    "Помогает объективно понять и проанализировать задания и результаты студентов.",
+  pzR4Title: "Наблюдение за студентами",
+  pzR4Text:
+    "Точно показывает, какая тема или какие студенты требуют дополнительного внимания и помощи.",
+
+  pzUniTag: "05 · UNIVERSITET UCHUN",
+  pzUniTitle: "Для университета",
+  pzUniSubtitle:
+    "UniOS — это AI-интеллектуальный слой университета, а не просто приложение для студентов.",
+  pzU1Title: "Анализ",
+  pzU1Text:
+    "Даёт единое и прозрачное представление о студентах, курсах и всех академических процессах.",
+  pzU2Title: "Раннее выявление",
+  pzU2Text:
+    "Заранее выявляет академические риски, снижение успеваемости и отставания, предупреждает о них.",
+  pzU3Title: "Автоматизация",
+  pzU3Text:
+    "Автоматизирует повторяющиеся и трудоёмкие академические и административные задачи.",
+  pzU4Title: "Принятие решений",
+  pzU4Text:
+    "Помогает руководству быстро принимать решения на основе точных данных и аналитики.",
+
+  pzBizTag: "06 · BIZNING FARQIMIZ / BIZNES MODEL",
+  pzBizTitle: "Наше отличие · Бизнес-модель",
+  pzBizSubtitle: "UniOS предлагается университетам по цене годовой подписки",
+  pzPrice: "$1 000",
+  pzPriceLabel: "годовой платёж за университет",
+  pzDiffT1: "Интеграция",
+  pzDiffT1Text:
+    "HEMIS — инфраструктура, UniOS — интеллектуальный слой. Добавляется поверх существующей HEMIS/LMS, не заменяя её.",
+  pzDiffT2: "Трёхстороннее решение",
+  pzDiffT2Text:
+    "Органично объединяет студента, профессора и руководство университета в одну интеллектуальную экосистему.",
+  pzDiffT3: "Ориентир на действия",
+  pzDiffT3Text:
+    "Не просто собирает данные — использует их для реальных эффективных академических решений.",
+
+  pzFlowTag: "07 · EKOTIZIM INTEGRATSIYASI",
+  pzFlowTitle: "Интеграция экосистемы",
+  pzFlowSubtitle: "ОДИН УНИВЕРСИТЕТ. ОДНА ИНТЕЛЛЕКТУАЛЬНАЯ СИСТЕМА.",
+  pzStep1Title: "Ввод",
+  pzStep1Text: "Профессор обучает",
+  pzStep2Title: "Обработка",
+  pzStep2Text: "AI понимает",
+  pzStep3Title: "Усвоение",
+  pzStep3Text: "Студент учится",
+  pzStep4Title: "Результат",
+  pzStep4Text: "Университет развивается",
+
+  pzCtaTitle: "Попробуй UniOS AI прямо сейчас",
+  pzCtaText:
+    "Открой демо-дашборд и увидь, как AI-слой поверх HEMIS работает для студентов и преподавателей.",
+
   // Student
   goodDay: "Добрый день",
   subjectsCount: "Предметов",
@@ -166,6 +280,120 @@ const uz: Record<TranslationKey, string> = {
     "Auditoriya tushunishini jonli ko'rsatkich: talabalarga qaysi mavzular qiyin bo'lgani — to'g'ridan-to'g'ri HEMISda.",
   footerCredit: "UniOS AI · HEMIS · Next.js 14 + Tailwind",
 
+  pzProblemTag: "01 · MUAMMO",
+  pzProblemHeading: "Bugungi ta'lim bir nechta tizim va qo'lda bajariladigan jarayonlarga bo'linib ketgan.",
+  pzProblemTagline: "Professor + Talaba + Universitet → Yagona intellektual ekotizim",
+  pzColTalaba: "Talaba",
+  pzColProfessor: "Professor",
+  pzColUniversitet: "Universitet",
+  pzP1: "Bir nechta platformalar bilan ishlash majburiyati",
+  pzP2: "Tarqoq va tartibsiz o'quv materiallari",
+  pzP3: "Konspekt yozish yoki tinglash o'rtasida majburiy tanlov",
+  pzP4: "O'z o'zlashtirish natijasini xolis tushunish qiyin",
+  pzP5: "Ma'ruzalarga tayyorgarlik uchun ko'p vaqt sarfi",
+  pzP6: "Materiallar va testlarni qo'lda yaratish",
+  pzP7: "Topshiriqlarni birma-bir baholash yuklamasi",
+  pzP8: "Har bir talabani kuzatishga vaqt yetishmasligi",
+  pzP9: "Ma'lumotlar turli tizimlarga tarqalib ketgan",
+  pzP10: "Cheklangan tahlil va analitika imkoniyatlari",
+  pzP11: "Akademik muammolar juda kech aniqlanadi",
+  pzP12: "Qarorlar uchun ma'lumotlar qo'lda yig'iladi",
+  pzResult: "Natija: Vaqt yo'qotiladi • Ma'lumotlar tarqoq • Individuallashtirish darajasi pasayadi",
+
+  pzSolutionTag: "02 · YECHIM",
+  pzSolutionHeading:
+    "Biz nima qurmoqdamiz? Mavjud ta'lim infratuzilmasi ustiga aqlli AI qatlamini qurmoqdamiz.",
+  pzExistingInfra: "Mavjud infratuzilma",
+  pzExistingInfraText: "HEMIS / LMS — universitet ma'lumotlari (professor va talaba)",
+  pzUniosLayer: "UniOS AI",
+  pzUniosLayerText: "Integratsiya va AI qatlami: avtomatik tahlil va shaxsiy yordamchi",
+  pzSmartValue: "Aqlli qiymat",
+  pzValueIntegration: "Integratsiya",
+  pzValueIndividual: "Individuallashtirish",
+  pzValueAnalytics: "Tahlil va analitika",
+
+  pzStudentsTag: "03 · TALABALAR UCHUN",
+  pzStudentsTitle: "Talabalar uchun",
+  pzStudentsSubtitle:
+    "Butun ta'lim yo'li uchun shaxsiy AI-yordamchi — platformani almashtirmaydi, yoniga qo'shiladi.",
+  pzS1Title: "Jonli ma'ruza",
+  pzS1Text:
+    "STT texnologiyasi professor nutqini matnga o'girib, uni tuzilgan konspekt va o'quv materiallariga aylantiradi.",
+  pzS2Title: "AI-repetitor",
+  pzS2Text:
+    "Mavzularni chuqur tushuntiradi, talaba savollariga darhol javob beradi va xatolarni tahlil qiladi.",
+  pzS3Title: "Topshiriqlar",
+  pzS3Text:
+    "Uy vazifalari va amaliy topshiriqlarni to'g'ri tushunish hamda tizimli bajarishga ko'maklashadi.",
+  pzS4Title: "Rivojlanish",
+  pzS4Text:
+    "Baholar, davomat hamda fanlarni o'zlashtirish dinamikasini uzluksiz kuzatib boradi.",
+
+  pzProfsTag: "04 · PROFESSORLAR UCHUN",
+  pzProfsTitle: "Professorlar uchun",
+  pzProfsSubtitle:
+    "Professorni almashtirmaydi — vaqtini tejaydi, tayyorgarlik va baholash vaqtini qisqartiradi.",
+  pzR1Title: "Ma'ruzadan material",
+  pzR1Text:
+    "Ma'ruzalardan avtomatik tarzda konspekt, asosiy fikrlar, amaliy misollar va qo'shimcha materiallar yaratadi.",
+  pzR2Title: "AI orqali test",
+  pzR2Text:
+    "Mavzuga mos nazorat testlari, savollar banki va interaktiv mashqlarni soniyalar ichida shakllantiradi.",
+  pzR3Title: "Baholash",
+  pzR3Text:
+    "Talabalar topshiriqlari va natijalarini xolis tushunish hamda tahlil qilishga ko'maklashadi.",
+  pzR4Title: "Talabalarni kuzatish",
+  pzR4Text:
+    "Qaysi mavzu yoki qaysi talabalarga qo'shimcha e'tibor va yordam kerakligini aniq ko'rsatadi.",
+
+  pzUniTag: "05 · UNIVERSITET UCHUN",
+  pzUniTitle: "Universitet uchun",
+  pzUniSubtitle:
+    "UniOS — universitetning AI intellekt qatlami. Shunchaki talaba ilovasi emas.",
+  pzU1Title: "Tahlil",
+  pzU1Text:
+    "Talabalar, kurslar va barcha akademik jarayonlar bo'yicha yagona va shaffof tushuncha beradi.",
+  pzU2Title: "Erta aniqlash",
+  pzU2Text:
+    "Akademik xavflar, o'zlashtirish pasayishi va qolish holatlarini barvaqt aniqlab ogohlantiradi.",
+  pzU3Title: "Avtomatlashtirish",
+  pzU3Text:
+    "Takrorlanuvchi va vaqt talab qiladigan akademik hamda ma'muriy ishlarni avtomatlashtiradi.",
+  pzU4Title: "Qaror qabul qilish",
+  pzU4Text:
+    "Rahbariyatga aniq ma'lumotlarga va analitikaga asoslangan tezkor qarorlar qabul qilishda yordam beradi.",
+
+  pzBizTag: "06 · BIZNING FARQIMIZ / BIZNES MODEL",
+  pzBizTitle: "Bizning farqimiz · Biznes model",
+  pzBizSubtitle: "UniOS universitetlarga yillik obuna narxida taklif etiladi",
+  pzPrice: "$1 000",
+  pzPriceLabel: "universitet uchun yillik to'lov",
+  pzDiffT1: "Integratsiya",
+  pzDiffT1Text:
+    "HEMIS — infratuzilma. UniOS — intellekt qatlami. Mavjud HEMIS/LMS ustiga qo'shiladi, uni almashtirmaydi.",
+  pzDiffT2: "3 tomonlama yechim",
+  pzDiffT2Text:
+    "Talaba, professor va universitet rahbariyatini bitta yagona intellektual ekotizimda uzviy birlashtiradi.",
+  pzDiffT3: "Harakatga asoslangan",
+  pzDiffT3Text:
+    "Ma'lumotlarni shunchaki yig'ib qo'ymaydi — ularni real va samarali akademik qarorlar uchun ishlatadi.",
+
+  pzFlowTag: "07 · EKOTIZIM INTEGRATSIYASI",
+  pzFlowTitle: "Ekotizim integratsiyasi",
+  pzFlowSubtitle: "BITTA UNIVERSITET. BITTA INTELLEKTUAL TIZIM.",
+  pzStep1Title: "Kirish",
+  pzStep1Text: "Professor o'qitadi",
+  pzStep2Title: "Qayta ishlash",
+  pzStep2Text: "AI tushunadi",
+  pzStep3Title: "O'zlashtirish",
+  pzStep3Text: "Talaba o'rganadi",
+  pzStep4Title: "Natija",
+  pzStep4Text: "Universitet rivojlanadi",
+
+  pzCtaTitle: "Hozir UniOS AI ni sinab ko'ring",
+  pzCtaText:
+    "Demo-dashboardni oching va AI qatlami HEMIS ustida talaba hamda o'qituvchilar uchun qanday ishlashini ko'ring.",
+
   goodDay: "Xayrli kun",
   subjectsCount: "Fanlar",
   lecturesListened: "Tinglangan ma'ruzalar",
@@ -295,6 +523,120 @@ const en: Record<TranslationKey, string> = {
   featureAnalyticsText:
     "A live comprehension widget: which concepts confused your students — right inside HEMIS.",
   footerCredit: "UniOS AI · HEMIS · Next.js 14 + Tailwind",
+
+  pzProblemTag: "01 · PROBLEM",
+  pzProblemHeading: "Today's education is split across several systems and manual processes.",
+  pzProblemTagline: "Professor + Student + University → A single intelligent ecosystem",
+  pzColTalaba: "Student",
+  pzColProfessor: "Professor",
+  pzColUniversitet: "University",
+  pzP1: "Forced to work with multiple platforms",
+  pzP2: "Scattered, messy learning materials",
+  pzP3: "Forced choice between taking notes and listening",
+  pzP4: "Hard to objectively understand your own progress",
+  pzP5: "Too much time spent preparing lectures",
+  pzP6: "Creating materials and tests by hand",
+  pzP7: "Grading assignments one by one",
+  pzP8: "Not enough time to track every student",
+  pzP9: "Data scattered across different systems",
+  pzP10: "Limited analysis and analytics capabilities",
+  pzP11: "Academic problems detected too late",
+  pzP12: "Data collected manually for decisions",
+  pzResult: "Result: time wasted • data scattered • individualization drops",
+
+  pzSolutionTag: "02 · SOLUTION",
+  pzSolutionHeading:
+    "What are we building? A smart AI layer on top of the existing education infrastructure.",
+  pzExistingInfra: "Existing infrastructure",
+  pzExistingInfraText: "HEMIS / LMS — university data (professors and students)",
+  pzUniosLayer: "UniOS AI",
+  pzUniosLayerText: "Integration & AI layer: automatic analysis and a personal assistant",
+  pzSmartValue: "Smart value",
+  pzValueIntegration: "Integration",
+  pzValueIndividual: "Individualization",
+  pzValueAnalytics: "Analysis & analytics",
+
+  pzStudentsTag: "03 · FOR STUDENTS",
+  pzStudentsTitle: "For students",
+  pzStudentsSubtitle:
+    "A personal AI assistant for the whole learning path — it doesn't replace the platform, it works alongside it.",
+  pzS1Title: "Live lecture",
+  pzS1Text:
+    "STT technology turns the professor's speech into text — structured notes and study materials.",
+  pzS2Title: "AI tutor",
+  pzS2Text:
+    "Explains topics deeply, instantly answers the student's questions and analyzes mistakes.",
+  pzS3Title: "Assignments",
+  pzS3Text:
+    "Helps correctly understand and systematically complete homework and practical tasks.",
+  pzS4Title: "Development",
+  pzS4Text:
+    "Continuously tracks grades, attendance and subject progress dynamics.",
+
+  pzProfsTag: "04 · FOR PROFESSORS",
+  pzProfsTitle: "For professors",
+  pzProfsSubtitle:
+    "It doesn't replace the professor — it saves their time and cuts preparation and grading time.",
+  pzR1Title: "Material from lecture",
+  pzR1Text:
+    "Automatically creates notes, key ideas, practical examples and extra materials from lectures.",
+  pzR2Title: "Test via AI",
+  pzR2Text:
+    "Builds control tests, question banks and interactive exercises in seconds.",
+  pzR3Title: "Grading",
+  pzR3Text:
+    "Helps objectively understand and analyze student assignments and results.",
+  pzR4Title: "Student tracking",
+  pzR4Text:
+    "Clearly shows which topic or which students need extra attention and help.",
+
+  pzUniTag: "05 · FOR UNIVERSITIES",
+  pzUniTitle: "For the university",
+  pzUniSubtitle:
+    "UniOS is the university's AI intelligence layer — not just a student app.",
+  pzU1Title: "Analysis",
+  pzU1Text:
+    "Provides a unified, transparent view of students, courses and all academic processes.",
+  pzU2Title: "Early detection",
+  pzU2Text:
+    "Detects and warns about academic risks, falling progress and lagging early.",
+  pzU3Title: "Automation",
+  pzU3Text:
+    "Automates repetitive, time-consuming academic and administrative tasks.",
+  pzU4Title: "Decision making",
+  pzU4Text:
+    "Helps leadership make fast decisions based on accurate data and analytics.",
+
+  pzBizTag: "06 · OUR DIFFERENCE / BUSINESS MODEL",
+  pzBizTitle: "Our difference · Business model",
+  pzBizSubtitle: "UniOS is offered to universities at an annual subscription price",
+  pzPrice: "$1,000",
+  pzPriceLabel: "annual fee per university",
+  pzDiffT1: "Integration",
+  pzDiffT1Text:
+    "HEMIS is the infrastructure. UniOS is the intelligence layer. It sits on top of existing HEMIS/LMS — no replacement.",
+  pzDiffT2: "3-way solution",
+  pzDiffT2Text:
+    "Seamlessly unites the student, professor and university leadership in one intelligent ecosystem.",
+  pzDiffT3: "Action-driven",
+  pzDiffT3Text:
+    "It doesn't just collect data — it uses it for real, effective academic decisions.",
+
+  pzFlowTag: "07 · ECOSYSTEM INTEGRATION",
+  pzFlowTitle: "Ecosystem integration",
+  pzFlowSubtitle: "ONE UNIVERSITY. ONE INTELLIGENT SYSTEM.",
+  pzStep1Title: "Input",
+  pzStep1Text: "Professor teaches",
+  pzStep2Title: "Processing",
+  pzStep2Text: "AI understands",
+  pzStep3Title: "Learning",
+  pzStep3Text: "Student learns",
+  pzStep4Title: "Result",
+  pzStep4Text: "University grows",
+
+  pzCtaTitle: "Try UniOS AI right now",
+  pzCtaText:
+    "Open the demo dashboard and see how the AI layer on top of HEMIS works for students and professors.",
 
   goodDay: "Good day",
   subjectsCount: "Subjects",
