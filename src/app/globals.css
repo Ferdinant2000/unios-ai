@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: light;
+}
+
+.dark {
   color-scheme: dark;
 }
 
@@ -12,47 +16,54 @@ body {
 }
 
 body {
-  background-color: #07070d;
-  color: #e7e9f0;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
   -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
-.bg-aurora {
-  background-image:
-    radial-gradient(
-      1200px 600px at 15% -10%,
-      rgba(124, 58, 237, 0.22),
-      transparent 60%
-    ),
-    radial-gradient(
-      1000px 500px at 85% 0%,
-      rgba(34, 211, 238, 0.14),
-      transparent 55%
-    ),
-    radial-gradient(
-      900px 700px at 50% 110%,
-      rgba(236, 72, 153, 0.12),
-      transparent 60%
-    );
+.dark body {
+  background-color: #070a13;
+  color: #e7e9f0;
 }
 
 @layer utilities {
+  /* Glassmorphism, адаптированный под обе темы */
   .glass {
-    @apply rounded-2xl border border-white/10 bg-white/[0.05] backdrop-blur-xl;
+    @apply rounded-2xl border border-slate-200 bg-white/60 backdrop-blur-xl shadow-sm dark:border-white/10 dark:bg-white/[0.05] dark:shadow-none;
   }
   .glass-strong {
-    @apply rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-2xl;
+    @apply rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-2xl dark:border-white/15 dark:bg-white/[0.08];
   }
+
+  /* Градиент бренда по логотипу */
   .text-gradient {
-    @apply bg-gradient-to-r from-violet-400 via-sky-400 to-fuchsia-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-brand-blue via-brand-indigo to-brand-purple bg-clip-text text-transparent;
   }
+
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:brightness-110 hover:shadow-lg hover:shadow-violet-600/25 active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-purple-500/20 transition-all duration-150 hover:scale-[1.015] hover:shadow-xl hover:shadow-purple-500/30 active:scale-[0.98];
   }
+
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-medium text-zinc-200 transition-all duration-200 hover:border-white/25 hover:bg-white/10 active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-all duration-150 hover:scale-[1.015] hover:border-purple-500/40 hover:bg-white/80 active:scale-[0.98] dark:border-white/15 dark:bg-white/5 dark:text-zinc-200 dark:hover:border-white/25 dark:hover:bg-white/10;
+  }
+
+  /* Плашка-бейдж «AI» по брендбуку */
+  .ai-badge {
+    @apply inline-flex items-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-2.5 py-0.5 text-xs font-bold text-white shadow-md shadow-purple-500/20;
+  }
+
+  /* Отзывчивая карточка */
+  .interactive-card {
+    @apply transition-all duration-150 hover:scale-[1.015] hover:border-purple-500/40 active:scale-[0.98];
+  }
+
+  /* Иконка-кнопка со стеклянным микро-эффектом */
+  .icon-btn {
+    @apply flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 backdrop-blur-xl transition-all duration-150 hover:scale-[1.05] hover:border-purple-500/40 active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-white/25;
   }
 }
 
@@ -136,9 +147,12 @@ body {
   background: transparent;
 }
 .chat-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(148, 163, 184, 0.35);
   border-radius: 999px;
 }
+.dark .chat-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+}
 .chat-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(139, 92, 246, 0.5);
 }

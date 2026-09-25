@@ -8,7 +8,7 @@ import type {
 
 export const STUDENT: User = {
   role: "student",
-  name: "Фирдавсбек Каримов",
+  name: "Фирдавсбек Комолитдинов",
   hemisId: "HEMIS-2024-00451",
   avatar: "ФК",
 };

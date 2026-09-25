@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   BookOpen,
@@ -14,10 +16,11 @@ import {
 import {
   Avatar,
   GlassCard,
-  Logo,
   SectionLabel,
-  StatusPill,
 } from "@/components/primitives";
+import Header from "@/components/layout/Header";
+import FadeIn from "@/components/ui/FadeIn";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   COURSES,
   LECTURES,
@@ -25,68 +28,79 @@ import {
   getLecturesByCourse,
 } from "@/lib/mock-hemis";
 
-const STATS = [
-  { icon: BookOpen, label: "Предметов", value: String(COURSES.length) },
-  { icon: Clock, label: "Лекций прослушано", value: "6" },
-  { icon: CheckCircle2, label: "Средний балл", value: "86%" },
-  { icon: MessageSquareText, label: "Вопросов к лекции", value: "14" },
-];
-
 const GPA_BARS = [
-  { label: "ИИ", value: 74, score: "92%" },
-  { label: "ЭКО", value: 62, score: "84%" },
-  { label: "БД", value: 55, score: "78%" },
+  { label: "AI", value: 74, score: "92%" },
+  { label: "ECO", value: 62, score: "84%" },
+  { label: "DB", value: 55, score: "78%" },
 ];
 
-const WEEK_TALKS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+const WEEK_TALKS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const STAT_ICONS = [BookOpen, Clock, CheckCircle2, MessageSquareText];
 
 export default function StudentDashboard() {
+  const { t } = useLanguage();
   const recentLectures = [...LECTURES].slice(0, 3);
-  const lecturesCount = (courseId: string) =>
-    getLecturesByCourse(courseId).length;
+
+  const statLabels = [
+    t("subjectsCount"),
+    t("lecturesListened"),
+    t("avgScore"),
+    t("questionsAsked"),
+  ];
+  const statValues = [String(COURSES.length), "6", "86%", "14"];
+  const statIcons = STAT_ICONS;
 
   return (
     <main className="min-h-screen">
-      <div className="mx-auto w-full max-w-6xl px-6 pb-20">
-        <header className="flex items-center justify-between py-6">
-          <Logo />
-          <div className="flex items-center gap-3">
-            <StatusPill label="Интеграция с HEMIS: Активна" active />
-            <Avatar name={STUDENT.name} />
-          </div>
-        </header>
+      <Header user={STUDENT} />
 
-        <section className="pt-6">
-          <p className="text-sm text-zinc-400">Добрый день,</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">
-            Фирдавсбек <span className="text-gradient">Каримов</span>
+      <div className="mx-auto w-full max-w-6xl px-6 pb-20">
+        <section className="pt-8">
+          <p className="text-sm text-slate-500 dark:text-zinc-400">
+            {t("goodDay")},
+          </p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white md:text-4xl">
+            Фирдавсбек <span className="text-gradient">Комолитдинов</span>
           </h1>
-          <p className="mt-2 text-sm text-zinc-500">{STUDENT.hemisId}</p>
+          <p className="mt-2 text-sm text-slate-400 dark:text-zinc-500">
+            {STUDENT.hemisId}
+          </p>
         </section>
 
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {STATS.map((stat) => (
-            <GlassCard key={stat.label} className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-violet-300">
-                  <stat.icon className="h-5 w-5" />
+          {statIcons.map((Icon, index) => (
+            <FadeIn key={statLabels[index]} delay={index * 0.04}>
+              <GlassCard className="p-5">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600/15 to-purple-600/15 text-indigo-500 dark:text-violet-300">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-extrabold text-slate-900 dark:text-white">
+                      {statValues[index]}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">
+                      {statLabels[index]}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-white">{stat.value}</p>
-                  <p className="text-xs text-zinc-400">{stat.label}</p>
-                </div>
-              </div>
-            </GlassCard>
+              </GlassCard>
+            </FadeIn>
           ))}
         </section>
 
         <section className="mt-10">
-          <div className="mb-4 flex items-center justify-between">
-            <SectionLabel icon={<Library className="h-3.5 w-3.5" />}>
-              Мои предметы (HEMIS)
-            </SectionLabel>
-            <span className="text-xs text-zinc-500">3 подключено из 3</span>
-          </div>
+          <FadeIn>
+            <div className="mb-4 flex items-center justify-between">
+              <SectionLabel icon={<Library className="h-3.5 w-3.5" />}>
+                {t("myCourses")}
+              </SectionLabel>
+              <span className="text-xs text-slate-400 dark:text-zinc-500">
+                {t("coursesConnected", { count: 3, total: 3 })}
+              </span>
+            </div>
+          </FadeIn>
 
           <div className="grid gap-4 md:grid-cols-3">
             {COURSES.map((course, index) => {
@@ -94,37 +108,38 @@ export default function StudentDashboard() {
               const icons = [BookOpen, TrendingUp, Database];
               const Icon = icons[index % icons.length];
               return (
-                <GlassCard
-                  key={course.id}
-                  className="group p-5 transition-all hover:border-violet-400/30 hover:bg-white/[0.08]"
-                >
-                  <div className="mb-4 flex items-start justify-between">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600/30 to-fuchsia-600/30 text-violet-300">
-                      <Icon className="h-5 w-5" />
+                <FadeIn key={course.id} delay={index * 0.05}>
+                  <GlassCard className="group h-full">
+                    <div className="mb-4 flex items-start justify-between">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600/20 to-purple-600/20 text-indigo-500 dark:text-violet-300">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-zinc-400">
+                        {course.code}
+                      </span>
                     </div>
-                    <span className="rounded-full border border-white/10 px-2.5 py-1 text-[11px] font-medium text-zinc-400">
-                      {course.code}
-                    </span>
-                  </div>
-                  <h3 className="font-semibold text-white">{course.title}</h3>
-                  <p className="mt-1 text-xs text-zinc-500">
-                    {course.professorName}
-                  </p>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xs text-zinc-400">
-                      {lecturesCount(course.id)} лекции синхронизированы
-                    </span>
-                    {lecture && (
-                      <Link
-                        href={`/student/lecture/${lecture.id}`}
-                        className="inline-flex items-center gap-1 text-sm font-medium text-violet-300 transition-colors hover:text-violet-200"
-                      >
-                        Открыть
-                        <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                      </Link>
-                    )}
-                  </div>
-                </GlassCard>
+                    <h3 className="font-bold text-slate-900 dark:text-white">
+                      {course.title}
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-400 dark:text-zinc-500">
+                      {course.professorName}
+                    </p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="text-xs text-slate-500 dark:text-zinc-400">
+                        {t("lecturesSynced", { count: getLecturesByCourse(course.id).length })}
+                      </span>
+                      {lecture && (
+                        <Link
+                          href={`/student/lecture/${lecture.id}`}
+                          className="inline-flex items-center gap-1 text-sm font-bold text-indigo-500 transition-colors hover:text-indigo-400 dark:text-violet-300 dark:hover:text-violet-200"
+                        >
+                          {t("open")}
+                          <ChevronRight className="h-4 w-4" />
+                        </Link>
+                      )}
+                    </div>
+                  </GlassCard>
+                </FadeIn>
               );
             })}
           </div>
@@ -132,77 +147,98 @@ export default function StudentDashboard() {
 
         <section className="mt-10 grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="space-y-4">
-            <SectionLabel icon={<Clock className="h-3.5 w-3.5" />}>
-              Последние лекции
-            </SectionLabel>
+            <FadeIn>
+              <SectionLabel icon={<Clock className="h-3.5 w-3.5" />}>
+                {t("lastLectures")}
+              </SectionLabel>
+            </FadeIn>
 
-            {recentLectures.map((lecture) => {
+            {recentLectures.map((lecture, index) => {
               const course = COURSES.find((c) => c.id === lecture.courseId);
               return (
-                <Link key={lecture.id} href={`/student/lecture/${lecture.id}`}>
-                  <GlassCard className="flex items-center gap-4 p-4 transition-all hover:border-violet-400/30 hover:bg-white/[0.08]">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-sky-300">
-                      <GraduationCap className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-white">
-                        {lecture.title}
-                      </p>
-                      <p className="mt-0.5 text-xs text-zinc-500">
-                        {course?.title} · {course?.code} · {lecture.date}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2 text-xs text-zinc-400">
-                      <span>{lecture.transcript.length} фрагмента</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </div>
-                  </GlassCard>
-                </Link>
+                <FadeIn key={lecture.id} delay={index * 0.05}>
+                  <Link href={`/student/lecture/${lecture.id}`}>
+                    <GlassCard className="flex items-center gap-4 p-4">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500/20 to-indigo-500/20 text-sky-600 dark:text-sky-300">
+                        <GraduationCap className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
+                          {lecture.title}
+                        </p>
+                        <p className="mt-0.5 text-xs text-slate-400 dark:text-zinc-500">
+                          {course?.title} · {course?.code} · {lecture.date}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2 text-xs text-slate-400 dark:text-zinc-400">
+                        <span>{t("fragments", { count: lecture.transcript.length })}</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </div>
+                    </GlassCard>
+                  </Link>
+                </FadeIn>
               );
             })}
           </div>
 
           <div className="space-y-6">
             <div>
-              <SectionLabel icon={<TrendingUp className="h-3.5 w-3.5" />}>
-                Успеваемость
-              </SectionLabel>
-              <GlassCard className="mt-4 p-5">
-                <div className="flex h-32 items-end justify-around gap-3 border-b border-white/10 pb-2">
-                  {GPA_BARS.map((bar) => (
-                    <div key={bar.label} className="flex w-full flex-col items-center gap-2">
-                      <span className="text-[10px] font-medium text-zinc-400">
-                        {bar.score}
-                      </span>
-                      <div
-                        className="w-full rounded-t-lg bg-gradient-to-t from-violet-600/70 to-fuchsia-500/70 transition-all"
-                        style={{ height: `${bar.value}%` }}
-                      />
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 flex justify-around text-[11px] text-zinc-500">
-                  {WEEK_TALKS.map((day) => (
-                    <span key={day}>{day}</span>
-                  ))}
-                </div>
-              </GlassCard>
+              <FadeIn>
+                <SectionLabel icon={<TrendingUp className="h-3.5 w-3.5" />}>
+                  {t("progress")}
+                </SectionLabel>
+              </FadeIn>
+              <FadeIn delay={0.05}>
+                <GlassCard className="mt-4 p-5">
+                  <div className="flex h-32 items-end justify-around gap-3 border-b border-slate-200 pb-2 dark:border-white/10">
+                    {GPA_BARS.map((bar) => (
+                      <div key={bar.label} className="flex w-full flex-col items-center gap-2">
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-400">
+                          {bar.score}
+                        </span>
+                        <div
+                          className="w-full rounded-t-lg bg-gradient-to-t from-blue-600/80 to-purple-500/80"
+                          style={{ height: `${bar.value}%` }}
+                        />
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500">
+                          {bar.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex justify-around text-[11px] text-slate-400 dark:text-zinc-500">
+                    {WEEK_TALKS.map((day) => (
+                      <span key={day}>{day}</span>
+                    ))}
+                  </div>
+                </GlassCard>
+              </FadeIn>
             </div>
 
             <div>
-              <SectionLabel icon={<ShieldCheck className="h-3.5 w-3.5" />}>
-                Интеграция
-              </SectionLabel>
-              <GlassCard className="mt-4 p-5">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="text-sm font-medium text-white">HEMIS</span>
-                  <StatusPill label="Активна" active />
-                </div>
-                <p className="text-xs leading-relaxed text-zinc-400">
-                  Аудиозаписи лекций, оценки и расписание синхронизируются
-                  автоматически. Последняя синхронизация: 10 минут назад.
-                </p>
-              </GlassCard>
+              <FadeIn>
+                <SectionLabel icon={<ShieldCheck className="h-3.5 w-3.5" />}>
+                  {t("integration")}
+                </SectionLabel>
+              </FadeIn>
+              <FadeIn delay={0.05}>
+                <GlassCard className="mt-4 p-5">
+                  <div className="mb-3 flex items-center gap-3">
+                    <Avatar name={STUDENT.name} size="sm" />
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">
+                        HEMIS
+                      </p>
+                      <p className="text-[11px] font-semibold text-emerald-500 dark:text-emerald-300">
+                        ● {t("syncedWithHemis")}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-xs leading-relaxed text-slate-500 dark:text-zinc-400">
+                    {t("hemisSyncText")} {t("lastSync")}.
+                  </p>
+                </GlassCard>
+              </FadeIn>
             </div>
           </div>
         </section>

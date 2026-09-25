@@ -4,16 +4,28 @@ import { cn } from "@/lib/utils";
 export function GlassCard({
   children,
   className,
+  interactive = true,
 }: {
   children: ReactNode;
   className?: string;
+  interactive?: boolean;
 }) {
-  return <div className={cn("glass p-5", className)}>{children}</div>;
+  return (
+    <div
+      className={cn(
+        "glass p-5",
+        interactive && "interactive-card",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 const AVATAR_GRADIENTS = [
-  "from-violet-500 to-fuchsia-500",
-  "from-sky-500 to-cyan-400",
+  "from-blue-500 to-purple-500",
+  "from-indigo-500 to-cyan-400",
   "from-emerald-500 to-teal-400",
   "from-amber-500 to-rose-500",
 ];
@@ -40,7 +52,7 @@ export function Avatar({
   return (
     <div
       className={cn(
-        "flex items-center justify-center rounded-full bg-gradient-to-br font-semibold text-white shadow-lg shadow-black/30",
+        "flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-bold text-white shadow-lg shadow-purple-500/20",
         gradient,
         sizes[size],
       )}
@@ -62,10 +74,10 @@ export function StatusPill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium",
+        "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold",
         active
-          ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-          : "border-white/10 bg-white/5 text-zinc-300",
+          ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-600 dark:text-emerald-300"
+          : "border-slate-300 bg-white text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300",
         className,
       )}
     >
@@ -88,24 +100,13 @@ export function SectionLabel({
   children: ReactNode;
 }) {
   return (
-    <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-400">
+    <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400">
       {icon}
       {children}
     </h2>
   );
 }
 
-export function Logo({ compact = false }: { compact?: boolean }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 shadow-lg shadow-violet-600/30">
-        <span className="text-sm font-black text-white">U</span>
-      </div>
-      {!compact && (
-        <span className="text-base font-bold tracking-tight text-white">
-          UniOS <span className="text-gradient">AI</span>
-        </span>
-      )}
-    </div>
-  );
+export function AiBadge({ children = "AI" }: { children?: ReactNode }) {
+  return <span className="ai-badge">{children}</span>;
 }
