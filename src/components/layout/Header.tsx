@@ -71,7 +71,7 @@ export default function Header({
                 onClick={() => setLang(item.value)}
                 aria-pressed={lang === item.value}
                 className={cn(
-                  "rounded-lg px-2 py-1 text-[11px] font-bold transition-all duration-150 active:scale-95 sm:px-3 sm:py-1.5 sm:text-xs",
+                  "rounded-full px-2 py-1 text-[11px] font-bold transition-all duration-150 active:scale-95 sm:px-3 sm:py-1.5 sm:text-xs",
                   lang === item.value
                     ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md shadow-purple-500/20"
                     : "text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white",

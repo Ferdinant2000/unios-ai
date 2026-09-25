@@ -15,7 +15,6 @@ import {
   TrendingUp,
 } from "lucide-react";
 import {
-  Avatar,
   GlassCard,
   SectionLabel,
 } from "@/components/primitives";
@@ -40,7 +39,6 @@ const STAT_ICONS = [BookOpen, Clock, CheckCircle2, MessageSquareText];
 export default function StudentDashboard() {
   const { t } = useLanguage();
   const recentLectures = [...LECTURES].slice(0, 3);
-  const weekDays = [t("dayMon"), t("dayTue"), t("dayWed"), t("dayThu"), t("dayFri"), t("daySat")];
   const [firstName, ...lastNameParts] = STUDENT.name.split(" ");
 
   const statLabels = [
@@ -56,7 +54,7 @@ export default function StudentDashboard() {
     <main className="min-h-screen w-full max-w-full overflow-x-hidden">
       <Header user={STUDENT} />
 
-      <div className="mx-auto w-full max-w-6xl space-y-4 px-3 py-4 sm:space-y-6 sm:px-6">
+      <div className="mx-auto w-full max-w-7xl space-y-4 px-3 py-4 sm:space-y-6 sm:px-6">
         <section>
           <p className="text-sm text-slate-500 dark:text-zinc-400">
             {t("goodDay")},
@@ -146,8 +144,8 @@ export default function StudentDashboard() {
           </div>
         </section>
 
-        <section className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
-          <div className="space-y-4">
+        <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="space-y-4 lg:col-span-6 xl:col-span-5">
             <FadeIn>
               <SectionLabel icon={<Clock className="h-3.5 w-3.5" />}>
                 {t("lastLectures")}
@@ -187,7 +185,7 @@ export default function StudentDashboard() {
             })}
           </div>
 
-          <div className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col gap-6 lg:col-span-6 xl:col-span-7">
             <div>
               <FadeIn>
                 <SectionLabel icon={<TrendingUp className="h-3.5 w-3.5" />}>
@@ -196,35 +194,32 @@ export default function StudentDashboard() {
               </FadeIn>
               <FadeIn delay={0.05}>
                 <div className="w-full max-w-full overflow-hidden rounded-2xl border border-slate-200/70 bg-white/60 p-3.5 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.06] sm:p-5">
-                  <div className="flex h-40 w-full items-end justify-between gap-1.5 px-1 pb-2 pt-6 sm:h-48 sm:gap-3">
+                  <div className="flex h-40 w-full items-end justify-around px-1 pb-2 pt-6 sm:h-48">
                     {GPA_BARS.map((bar, index) => (
                       <div
                         key={bar.label}
-                        className="flex h-full min-w-0 flex-1 flex-col items-center justify-end"
+                        className="flex h-full min-w-0 flex-1 flex-col items-center"
                       >
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-400">
+                        <span className="mb-1.5 text-[10px] font-bold text-slate-400 dark:text-zinc-400 sm:text-xs">
                           {bar.score}
                         </span>
-                        <motion.div
-                          className="w-full max-w-[32px] rounded-t-md bg-gradient-to-t from-blue-600 via-indigo-600 to-purple-500 transition-all duration-300 sm:max-w-[44px]"
-                          style={{ height: `${bar.percentage}%` }}
-                          initial={{ scaleY: 0 }}
-                          animate={{ scaleY: 1 }}
-                          transition={{
-                            duration: 0.7,
-                            delay: index * 0.1,
-                            ease: "easeOut",
-                          }}
-                        />
-                        <span className="mt-2 w-full truncate text-center text-[10px] font-bold text-slate-500 dark:text-zinc-400 sm:text-xs">
+                        <div className="flex min-h-0 w-full flex-1 items-end justify-center">
+                          <motion.div
+                            className="w-full max-w-[32px] rounded-t-md bg-gradient-to-t from-blue-600 via-indigo-600 to-purple-500 sm:max-w-[44px]"
+                            style={{ height: `${bar.percentage}%` }}
+                            initial={{ scaleY: 0 }}
+                            animate={{ scaleY: 1 }}
+                            transition={{
+                              duration: 0.6,
+                              delay: 0.2 + index * 0.1,
+                              ease: "easeOut",
+                            }}
+                          />
+                        </div>
+                        <span className="mt-1.5 w-full truncate text-center text-[10px] font-bold text-slate-500 dark:text-zinc-400 sm:text-xs">
                           {bar.label}
                         </span>
                       </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 flex justify-between text-[11px] text-slate-400 dark:text-zinc-500 sm:text-xs">
-                    {weekDays.map((day) => (
-                      <span key={day}>{day}</span>
                     ))}
                   </div>
                 </div>
@@ -238,23 +233,23 @@ export default function StudentDashboard() {
                 </SectionLabel>
               </FadeIn>
               <FadeIn delay={0.05}>
-                <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-                  <div className="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-slate-200/60 bg-white/40 p-3 backdrop-blur-md dark:border-white/5 dark:bg-white/[0.06] sm:p-4">
-                    <div className="flex min-w-0 items-center justify-between gap-2">
-                      <div className="flex min-w-0 items-center gap-2.5">
-                        <Avatar name={STUDENT.name} size="sm" />
-                        <p className="min-w-0 truncate text-sm font-bold text-slate-900 dark:text-white">
-                          HEMIS
-                        </p>
+                <div className="flex w-full min-w-0 flex-col gap-3 rounded-2xl border border-slate-200/70 bg-white/50 p-5 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.06]">
+                  <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:flex-nowrap">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600/20 to-purple-600/20 text-indigo-500 dark:text-violet-300">
+                        <ShieldCheck className="h-5 w-5" />
                       </div>
-                      <span className="flex-shrink-0 whitespace-nowrap rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-300 sm:text-xs">
-                        {t("syncedWithHemis")}
-                      </span>
+                      <p className="min-w-0 truncate text-sm font-bold text-slate-900 dark:text-white">
+                        HEMIS
+                      </p>
                     </div>
-                    <p className="text-xs leading-relaxed text-slate-500 dark:text-zinc-400">
-                      {t("hemisSyncText")} {t("lastSync")}.
-                    </p>
+                    <span className="flex-shrink-0 whitespace-nowrap rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-400">
+                      {t("syncedWithHemis")}
+                    </span>
                   </div>
+                  <p className="w-full break-words text-xs leading-relaxed text-slate-500 dark:text-zinc-400 sm:text-sm">
+                    {t("hemisSyncText")} {t("lastSync")}.
+                  </p>
                 </div>
               </FadeIn>
             </div>

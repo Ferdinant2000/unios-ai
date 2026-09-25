@@ -407,7 +407,7 @@ export const translations: Record<Lang, Record<TranslationKey, string>> = {
 };
 
 export const LANGS: { value: Lang; label: string }[] = [
-  { value: "uz", label: "UZ" },
-  { value: "ru", label: "RU" },
+  { value: "uz", label: "UZB" },
+  { value: "ru", label: "RUS" },
   { value: "en", label: "ENG" },
 ];
