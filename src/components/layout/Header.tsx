@@ -41,8 +41,8 @@ export default function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-slate-50/70 backdrop-blur-xl dark:border-white/10 dark:bg-ink/70">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-1.5 px-3 py-2.5 sm:gap-4 sm:px-6">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/50 bg-slate-50/80 backdrop-blur-md dark:border-white/10 dark:bg-ink/80">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:px-6">
         <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
           {showBack && (
             <button
@@ -71,7 +71,7 @@ export default function Header({
                 onClick={() => setLang(item.value)}
                 aria-pressed={lang === item.value}
                 className={cn(
-                  "rounded-full px-1.5 py-0.5 text-[11px] font-bold transition-all duration-150 active:scale-95 sm:px-3 sm:py-1 sm:text-xs",
+                  "rounded-lg px-2 py-1 text-[11px] font-bold transition-all duration-150 active:scale-95 sm:px-3 sm:py-1.5 sm:text-xs",
                   lang === item.value
                     ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md shadow-purple-500/20"
                     : "text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white",

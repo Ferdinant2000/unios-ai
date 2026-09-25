@@ -13,7 +13,7 @@ export function GlassCard({
   return (
     <div
       className={cn(
-        "glass p-5",
+        "glass p-4 sm:p-5",
         interactive && "interactive-card",
         className,
       )}

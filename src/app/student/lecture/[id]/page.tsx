@@ -218,7 +218,7 @@ export default function LecturePage() {
             </FadeIn>
 
             <FadeIn delay={0.05}>
-              <GlassCard className="p-5">
+              <GlassCard>
                 <div className="flex items-center gap-5">
                   <button
                     onClick={() => setPlaying((prev) => !prev)}

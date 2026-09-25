@@ -52,10 +52,10 @@ export default function StudentDashboard() {
   const statIcons = STAT_ICONS;
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen w-full max-w-full overflow-x-hidden">
       <Header user={STUDENT} />
 
-      <div className="mx-auto w-full max-w-6xl px-6 pb-20">
+      <div className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6">
         <section className="pt-8">
           <p className="text-sm text-slate-500 dark:text-zinc-400">
             {t("goodDay")},
@@ -68,10 +68,10 @@ export default function StudentDashboard() {
           </p>
         </section>
 
-        <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {statIcons.map((Icon, index) => (
             <FadeIn key={statLabels[index]} delay={index * 0.04}>
-              <GlassCard className="p-5">
+              <GlassCard>
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600/15 to-purple-600/15 text-indigo-500 dark:text-violet-300">
                     <Icon className="h-5 w-5" />
@@ -102,26 +102,26 @@ export default function StudentDashboard() {
             </div>
           </FadeIn>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
             {COURSES.map((course, index) => {
               const lecture = getLecturesByCourse(course.id)[0];
               const icons = [BookOpen, TrendingUp, Database];
               const Icon = icons[index % icons.length];
               return (
                 <FadeIn key={course.id} delay={index * 0.05}>
-                  <GlassCard className="group h-full">
+                  <GlassCard className="group h-full w-full">
                     <div className="mb-4 flex items-start justify-between">
                       <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600/20 to-purple-600/20 text-indigo-500 dark:text-violet-300">
                         <Icon className="h-5 w-5" />
                       </div>
-                      <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-zinc-400">
+                      <span className="shrink-0 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-zinc-400">
                         {course.code}
                       </span>
                     </div>
-                    <h3 className="font-bold text-slate-900 dark:text-white">
+                    <h3 className="truncate pr-2 text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
                       {course.title}
                     </h3>
-                    <p className="mt-1 text-xs text-slate-400 dark:text-zinc-500">
+                    <p className="mt-1 truncate text-xs text-slate-400 dark:text-zinc-500">
                       {course.professorName}
                     </p>
                     <div className="mt-4 flex items-center justify-between">
@@ -166,7 +166,7 @@ export default function StudentDashboard() {
                         <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
                           {lecture.title}
                         </p>
-                        <p className="mt-0.5 text-xs text-slate-400 dark:text-zinc-500">
+                        <p className="mt-0.5 truncate text-xs text-slate-400 dark:text-zinc-500">
                           {course?.title} · {course?.code} · {lecture.date}
                         </p>
                       </div>
@@ -189,7 +189,7 @@ export default function StudentDashboard() {
                 </SectionLabel>
               </FadeIn>
               <FadeIn delay={0.05}>
-                <GlassCard className="mt-4 p-5">
+                <GlassCard className="mt-4">
                   <div className="flex h-32 items-end justify-around gap-3 border-b border-slate-200 pb-2 dark:border-white/10">
                     {GPA_BARS.map((bar) => (
                       <div key={bar.label} className="flex w-full flex-col items-center gap-2">
@@ -222,7 +222,7 @@ export default function StudentDashboard() {
                 </SectionLabel>
               </FadeIn>
               <FadeIn delay={0.05}>
-                <GlassCard className="mt-4 p-5">
+                <GlassCard className="mt-4">
                   <div className="mb-3 flex items-center gap-3">
                     <Avatar name={STUDENT.name} size="sm" />
                     <div>

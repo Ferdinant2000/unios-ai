@@ -278,7 +278,7 @@ export default function LiveLecturePage() {
             </FadeIn>
 
             <FadeIn delay={0.05}>
-              <GlassCard className="p-6">
+              <GlassCard>
                 <div className="mb-4 flex items-center gap-2">
                   <Cpu className="h-4 w-4 text-amber-500" />
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
@@ -316,7 +316,7 @@ export default function LiveLecturePage() {
             </FadeIn>
 
             <FadeIn delay={0.1}>
-              <GlassCard className="p-6">
+              <GlassCard>
                 <div className="mb-4 flex items-center gap-2">
                   <RefreshCw className="h-4 w-4 text-indigo-500 dark:text-sky-300" />
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
@@ -402,7 +402,7 @@ export default function LiveLecturePage() {
             </FadeIn>
 
             <FadeIn delay={0.05}>
-              <GlassCard className="p-5" interactive={false}>
+              <GlassCard interactive={false}>
                 <div className="mb-3 flex items-center gap-2">
                   <Activity className="h-4 w-4 text-emerald-500" />
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">

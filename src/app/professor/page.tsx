@@ -72,7 +72,7 @@ export default function ProfessorDashboard() {
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {STAT_ICONS.map((Icon, index) => (
             <FadeIn key={statLabels[index]} delay={index * 0.04}>
-              <GlassCard className="p-5">
+              <GlassCard>
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600/15 via-indigo-600/15 to-purple-600/15 text-indigo-500 dark:text-violet-300">
                     <Icon className="h-5 w-5" />

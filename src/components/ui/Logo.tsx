@@ -97,7 +97,7 @@ export default function Logo({
         className={cn(
           "font-extrabold tracking-tight text-slate-900 dark:text-white",
           sizes.text,
-          hideWordmarkOnMobile && "hidden sm:inline-flex",
+          hideWordmarkOnMobile && "hidden md:inline-flex",
         )}
       >
         UniOS
@@ -106,7 +106,7 @@ export default function Logo({
         className={cn(
           "ai-badge",
           sizes.badge,
-          hideWordmarkOnMobile && "hidden sm:inline-flex",
+          hideWordmarkOnMobile && "hidden md:inline-flex",
         )}
       >
         AI
