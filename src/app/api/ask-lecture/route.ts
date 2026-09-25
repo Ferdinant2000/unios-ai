@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
   if (!question || !lectureId) {
     return NextResponse.json(
-      { error: "Параметры question и lectureId обязательны." },
+      { fallback: true, error: "Missing 'question' or 'lectureId'." },
       { status: 400 },
     );
   }
@@ -20,12 +20,23 @@ export async function POST(request: NextRequest) {
   const lecture = getLectureById(lectureId);
   if (!lecture) {
     return NextResponse.json(
-      { error: "Лекция не найдена." },
+      { fallback: true, error: "Lecture not found." },
       { status: 404 },
     );
   }
 
-  const { answer, timestampRef } = await askGroqAboutLecture(lecture, question);
+  const result = await askGroqAboutLecture(lecture, question);
+  if (!result) {
+    // AI недоступен (GROQ_API_KEY не задан / ошибка API) → клиентский чат
+    // автоматически переключится на локальный мок buildLectureAnswer.
+    return NextResponse.json(
+      { fallback: true, error: "Groq AI unavailable." },
+      { status: 200 },
+    );
+  }
 
-  return NextResponse.json({ answer, timestampRef });
+  return NextResponse.json({
+    answer: result.answer,
+    timestampRef: result.timestampRef,
+  });
 }

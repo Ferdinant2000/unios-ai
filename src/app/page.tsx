@@ -13,7 +13,6 @@ import {
   BrainCircuit,
   Building2,
   CheckCircle2,
-  CircleDollarSign,
   ClipboardCheck,
   ClipboardList,
   Cpu,
@@ -35,6 +34,8 @@ import {
 import { useLanguage } from "@/context/LanguageContext";
 import Header from "@/components/layout/Header";
 import FadeIn from "@/components/ui/FadeIn";
+import QrCode from "@/components/ui/QrCode";
+import PricingSection from "@/components/pricing/PricingSection";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/translations";
 
@@ -277,6 +278,25 @@ export default function LandingPage() {
               </Link>
             </div>
           </FadeIn>
+
+          <FadeIn delay={0.2}>
+            <div className="mt-8 flex items-center gap-4 rounded-2xl border border-slate-200 bg-white/70 p-3 pr-5 text-left backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
+              <QrCode
+                value="https://unios-ai.web.app"
+                size={104}
+                className="shrink-0 border-4 border-white bg-white shadow-sm"
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-slate-900 dark:text-white">{t("heroQrTitle")}</p>
+                <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-zinc-400">
+                  {t("heroQrText")}
+                </p>
+                <span className="mt-2 inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-white/10 dark:text-zinc-300">
+                  uni&shy;os-ai.web.app
+                </span>
+              </div>
+            </div>
+          </FadeIn>
         </section>
 
         {/* Quick features */}
@@ -438,19 +458,7 @@ export default function LandingPage() {
             subtitle={t("pzBizSubtitle")}
           />
 
-          <FadeIn delay={0.05}>
-            <div className="mx-auto mt-10 flex max-w-xl flex-col items-center gap-3 rounded-3xl border border-purple-500/25 bg-gradient-to-br from-blue-600/10 via-indigo-600/10 to-purple-600/10 px-6 py-8 text-center sm:py-10">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-purple-500/25">
-                <CircleDollarSign className="h-6 w-6" />
-              </div>
-              <span className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-6xl">
-                {t("pzPrice")}
-              </span>
-              <span className="text-sm font-medium text-slate-500 dark:text-zinc-400">
-                {t("pzPriceLabel")}
-              </span>
-            </div>
-          </FadeIn>
+          <PricingSection className="mt-10" />
 
           <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
             {DIFF_FEATURES.map((feature, index) => (

@@ -21,7 +21,7 @@ import {
   getLectureById,
   timeToSeconds,
 } from "@/lib/mock-hemis";
-import type { ChatMessage } from "@/types";
+import type { AskLectureResponse, ChatMessage } from "@/types";
 import { GlassCard } from "@/components/primitives";
 import Header from "@/components/layout/Header";
 import FadeIn from "@/components/ui/FadeIn";
@@ -149,11 +149,43 @@ export default function LecturePage() {
     ]);
     setLoading(true);
     try {
-      // Static export: no API routes — call mock logic directly on the client.
-      await new Promise((resolve) =>
-        setTimeout(resolve, 700 + Math.random() * 900),
-      );
-      const { answer, timestampRef } = buildLectureAnswer(safeLecture, question);
+      let answer: string | undefined;
+      let timestampRef: string | undefined;
+
+      // Реальный AI-агент (Groq): вызываем API-роут, если сервер доступен.
+      if (typeof window !== "undefined") {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+        try {
+          const res = await fetch("/api/ask-lecture", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ lectureId: safeLecture.id, question }),
+            signal: controller.signal,
+          });
+          if (res.ok) {
+            const data: AskLectureResponse = await res.json();
+            if (data.answer) {
+              answer = data.answer;
+              timestampRef = data.timestampRef;
+            }
+          }
+        } catch {
+          // API недоступен (static export / сервер выключен) — мок ниже.
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+
+      if (!answer) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 700 + Math.random() * 900),
+        );
+        const mock = buildLectureAnswer(safeLecture, question);
+        answer = mock.answer;
+        timestampRef = mock.timestampRef;
+      }
+
       setMessages((prev) => [
         ...prev,
         {

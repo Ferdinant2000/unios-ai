@@ -16,11 +16,14 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+unios*.log
 
 # typescript
 *.tsbuildinfo
 
-# env files
+# env files (secrets — never commit)
+.env
+.env.local
 .env*
 
 # firebase cli cache

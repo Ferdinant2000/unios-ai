@@ -1,19 +1,18 @@
 import Groq from "groq-sdk";
 import type { Lecture } from "@/types";
 
-function getGroqClient() {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    throw new Error("GROQ_API_KEY is not set");
-  }
-  return new Groq({ apiKey });
-}
+// Модель выбирается из списка, доступного ключу GROQ_API_KEY
+// (GET https://api.groq.com/openai/v1/models). llama-3.3-70b-versatile
+// для этого аккаунта недоступен (404 model_not_found); gpt-oss-20b — есть.
+const GROQ_MODEL = "openai/gpt-oss-20b";
 
 export async function askGroqAboutLecture(
   lecture: Lecture,
   question: string,
-): Promise<{ answer: string; timestampRef?: string }> {
-  const groq = getGroqClient();
+): Promise<{ answer: string; timestampRef?: string } | null> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) return null;
+
   const transcriptContext = lecture.transcript
     .map((seg) => `[${seg.time}] ${seg.text}`)
     .join("\n\n");
@@ -46,8 +45,9 @@ ${transcriptContext}
 ${lecture.summary.join("\n")}`;
 
   try {
+    const groq = new Groq({ apiKey });
     const completion = await groq.chat.completions.create({
-      model: "openai/gpt-oss-20b",
+      model: GROQ_MODEL,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: question },
@@ -56,17 +56,16 @@ ${lecture.summary.join("\n")}`;
       max_tokens: 1024,
     });
 
-    const answer = completion.choices[0]?.message?.content ?? "Не удалось получить ответ от AI.";
+    const answer = completion.choices[0]?.message?.content?.trim();
+    if (!answer) return null;
 
     const timestampMatch = answer.match(/\[(\d{2}:\d{2})\]/);
-    const timestampRef = timestampMatch ? timestampMatch[1] : undefined;
-
-    return { answer, timestampRef };
+    return {
+      answer,
+      timestampRef: timestampMatch ? timestampMatch[1] : undefined,
+    };
   } catch (error) {
     console.error("Groq API error:", error);
-    return {
-      answer: "Произошла ошибка при обращении к AI. Попробуйте позже.",
-      timestampRef: undefined,
-    };
+    return null;
   }
 }

@@ -43,6 +43,8 @@ export interface ClassroomAnalytics {
 }
 
 export interface AskLectureResponse {
-  answer: string;
+  answer?: string;
   timestampRef?: string;
+  fallback?: boolean;
+  error?: string;
 }
