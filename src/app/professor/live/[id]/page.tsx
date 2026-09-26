@@ -1,7 +1,7 @@
 import { COURSES } from "@/lib/mock-hemis";
 import LiveLecturePageClient from "./LiveLecturePage";
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return COURSES.map((course) => ({

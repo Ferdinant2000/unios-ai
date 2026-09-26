@@ -1,0 +1,459 @@
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  increment,
+  onSnapshot,
+  orderBy,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+import {
+  DEMO_TEACHER_ID,
+  getCurrentUserId,
+  getFirestoreSafe,
+  isLiveConfigured,
+} from "@/lib/firebase";
+
+/**
+ * Схема Firestore:
+ *   lectures/{lectureId}            { title, topic, teacherId, teacherName,
+ *                                     status: 'waiting'|'live'|'ended', createdAt }
+ *   lectures/{lectureId}/sections/{sectionId}   { text, audioUrl, timestamp, order }
+ *   lectures/{lectureId}/attendees/{studentId}  { studentName, joinedAt,
+ *                                     listenedSectionsCount, activeMinutes }
+ */
+
+export type LiveStatus = "waiting" | "live" | "ended";
+
+export interface LiveLecture {
+  id: string;
+  title: string;
+  topic: string;
+  teacherId: string;
+  teacherName: string;
+  status: LiveStatus;
+  createdAt: number;
+}
+
+export interface LiveSection {
+  id: string;
+  text: string;
+  audioUrl: string | null;
+  timestamp: number;
+  order: number;
+}
+
+export interface LiveAttendee {
+  id: string;
+  studentName: string;
+  joinedAt: number;
+  listenedSectionsCount: number;
+  activeMinutes: number;
+}
+
+export type Unsub = () => void;
+
+export const LIVE_PREFIX = "unios:live";
+
+// ---------------------------------------------------------------------------
+// Demo-бэкенд: localStorage + storage-событие (синк между вкладками).
+// Используется, пока NEXT_PUBLIC_FIREBASE_CONFIG не настроен.
+// ---------------------------------------------------------------------------
+
+const lsLectureKey = (id: string) => `${LIVE_PREFIX}:lecture:${id}`;
+const lsSectionsKey = (id: string) => `${LIVE_PREFIX}:sections:${id}`;
+const lsAttendeesKey = (id: string) => `${LIVE_PREFIX}:attendees:${id}`;
+const LS_INDEX = `${LIVE_PREFIX}:lectures`;
+
+const isClientSide = () => typeof window !== "undefined";
+
+function lsGet<T>(key: string, fallback: T): T {
+  if (!isClientSide()) return fallback;
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function lsSet(key: string, value: unknown) {
+  if (!isClientSide()) return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (err) {
+    console.error("[live] localStorage write failed", err);
+  }
+}
+
+const demoListeners = new Map<string, Set<() => void>>();
+
+function demoOn(channel: string, cb: () => void): Unsub {
+  const set = demoListeners.get(channel) ?? new Set<() => void>();
+  set.add(cb);
+  demoListeners.set(channel, set);
+  return () => {
+    set.delete(cb);
+  };
+}
+
+function demoEmit(channel: string) {
+  demoListeners.get(channel)?.forEach((cb) => cb());
+}
+
+function ensureStorageListener() {
+  if (!isClientSide() || (window as unknown as { __uniosLiveSynced?: boolean }).__uniosLiveSynced) {
+    return;
+  }
+  (window as unknown as { __uniosLiveSynced: boolean }).__uniosLiveSynced = true;
+  window.addEventListener("storage", (event) => {
+    if (!event.key || !event.key.startsWith(`${LIVE_PREFIX}:`)) return;
+    const id = event.key.split(":").slice(2).join(":");
+    if (event.key === LS_INDEX) {
+      demoListeners.forEach((_set, channel) => {
+        if (channel.startsWith("teacher:")) demoEmit(channel);
+      });
+    } else {
+      if (event.key === lsLectureKey(id)) demoEmit(`lecture:${id}`);
+      if (event.key === lsSectionsKey(id)) demoEmit(`sections:${id}`);
+      if (event.key === lsAttendeesKey(id)) demoEmit(`attendees:${id}`);
+      demoListeners.forEach((_set, channel) => {
+        if (channel.startsWith("teacher:")) demoEmit(channel);
+      });
+    }
+  });
+}
+
+function demoCurrentUserId(): string | null {
+  if (!isClientSide()) return null;
+  return window.localStorage.getItem("unios:live:me");
+}
+
+function demoIndexLectures(): string[] {
+  return lsGet<string[]>(LS_INDEX, []);
+}
+
+function demoLoadLecture(id: string): LiveLecture | null {
+  return lsGet<LiveLecture | null>(lsLectureKey(id), null);
+}
+
+function demoSaveLecture(lecture: LiveLecture) {
+  lsSet(lsLectureKey(lecture.id), lecture);
+  const index = demoIndexLectures();
+  if (!index.includes(lecture.id)) {
+    lsSet(LS_INDEX, [...index, lecture.id]);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Публичное API
+// ---------------------------------------------------------------------------
+
+/** Создаёт лекцию и возвращает её id. */
+export async function createLiveLecture(input: {
+  title: string;
+  topic: string;
+  teacherName: string;
+}): Promise<string> {
+  const teacherId = isLiveConfigured
+    ? (await getCurrentUserId()) || DEMO_TEACHER_ID
+    : DEMO_TEACHER_ID;
+  const id =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `lec-${Date.now()}`;
+  const lecture: LiveLecture = {
+    id,
+    title: input.title.trim(),
+    topic: input.topic.trim(),
+    teacherId,
+    teacherName: input.teacherName,
+    status: "waiting",
+    createdAt: Date.now(),
+  };
+
+  const db = getFirestoreSafe();
+  if (db) {
+    await setDoc(doc(db, "lectures", id), lecture);
+    return id;
+  }
+  ensureStorageListener();
+  demoSaveLecture(lecture);
+  demoEmit(`lecture:${id}`);
+  demoEmit(`teacher:${teacherId}`);
+  return id;
+}
+
+/** Читает лекцию (или null). */
+export async function getLiveLecture(id: string): Promise<LiveLecture | null> {
+  const db = getFirestoreSafe();
+  if (db) {
+    const snap = await getDoc(doc(db, "lectures", id));
+    return snap.exists() ? (snap.data() as LiveLecture) : null;
+  }
+  if (!isClientSide()) return null;
+  return demoLoadLecture(id);
+}
+
+/** Подписка на документ лекции. Передаёт актуальное значение сразу. */
+export function subscribeLiveLecture(
+  id: string,
+  cb: (lecture: LiveLecture | null) => void,
+): Unsub {
+  const db = getFirestoreSafe();
+  if (db) {
+    return onSnapshot(doc(db, "lectures", id), (snap) => {
+      cb(snap.exists() ? (snap.data() as LiveLecture) : null);
+    });
+  }
+  if (!isClientSide()) return () => {};
+  ensureStorageListener();
+  const off = demoOn(`lecture:${id}`, () => {
+    cb(demoLoadLecture(id));
+  });
+  cb(demoLoadLecture(id));
+  return off;
+}
+
+/** Изменение статуса лекции. */
+export async function setLiveLectureStatus(
+  id: string,
+  status: LiveStatus,
+): Promise<void> {
+  const db = getFirestoreSafe();
+  if (db) {
+    await updateDoc(doc(db, "lectures", id), { status });
+    return;
+  }
+  const lecture = demoLoadLecture(id);
+  if (!lecture) return;
+  demoLoadLecture(id);
+  const updated = { ...lecture, status };
+  demoSaveLecture(updated);
+  demoEmit(`lecture:${id}`);
+  demoEmit(`teacher:${lecture.teacherId}`);
+}
+
+/** Подписка на секции лекции (по порядку). */
+export function subscribeSections(
+  lectureId: string,
+  cb: (sections: LiveSection[]) => void,
+): Unsub {
+  const db = getFirestoreSafe();
+  if (db) {
+    const collectionRef = collection(db, "lectures", lectureId, "sections");
+    const q = query(collectionRef, orderBy("order", "asc"));
+    return onSnapshot(q, (snap) => {
+      cb(
+        snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<LiveSection, "id">),
+        })),
+      );
+    });
+  }
+  if (!isClientSide()) return () => {};
+  ensureStorageListener();
+  const off = demoOn(`sections:${lectureId}`, () => {
+    cb(lsGet<LiveSection[]>(lsSectionsKey(lectureId), []));
+  });
+  cb(lsGet<LiveSection[]>(lsSectionsKey(lectureId), []));
+  return off;
+}
+
+/** Добавляет секцию распознанной речи. */
+export async function addLiveSection(
+  lectureId: string,
+  input: { text: string; audioUrl?: string | null },
+): Promise<void> {
+  const text = input.text.trim();
+  if (!text) return;
+  const now = Date.now();
+  const data = {
+    text,
+    audioUrl: input.audioUrl ?? null,
+    timestamp: now,
+    order: now,
+  };
+  const db = getFirestoreSafe();
+  if (db) {
+    await addDoc(collection(db, "lectures", lectureId, "sections"), data);
+    return;
+  }
+  const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
+  const section: LiveSection = {
+    id: `sec-${now}`,
+    ...data,
+  };
+  lsSet(lsSectionsKey(lectureId), [...sections, section]);
+  demoEmit(`sections:${lectureId}`);
+}
+
+/** Подписка на список слушателей. */
+export function subscribeAttendees(
+  lectureId: string,
+  cb: (attendees: LiveAttendee[]) => void,
+): Unsub {
+  const db = getFirestoreSafe();
+  if (db) {
+    const attendeesRef = collection(db, "lectures", lectureId, "attendees");
+    return onSnapshot(query(attendeesRef, orderBy("joinedAt", "asc")), (snap) => {
+      cb(
+        snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<LiveAttendee, "id">),
+        })),
+      );
+    });
+  }
+  if (!isClientSide()) return () => {};
+  ensureStorageListener();
+  const off = demoOn(`attendees:${lectureId}`, () => {
+    cb(Object.values(lsGet<Record<string, LiveAttendee>>(lsAttendeesKey(lectureId), {})));
+  });
+  cb(Object.values(lsGet<Record<string, LiveAttendee>>(lsAttendeesKey(lectureId), {})));
+  return off;
+}
+
+/** Фиксирует присутствие студента (idempotent — не сбрасывает прогресс). */
+export async function joinLiveLecture(
+  lectureId: string,
+  studentName: string,
+): Promise<void> {
+  const studentId = (await getCurrentUserId()) || `guest-${Date.now()}`;
+  const db = getFirestoreSafe();
+  if (db) {
+    await setDoc(
+      doc(db, "lectures", lectureId, "attendees", studentId),
+      { studentName, joinedAt: Date.now() },
+      { merge: true },
+    );
+    return;
+  }
+  const attendees = lsGet<Record<string, LiveAttendee>>(lsAttendeesKey(lectureId), {});
+  const existing = attendees[studentId] ?? {
+    listenedSectionsCount: 0,
+    activeMinutes: 0,
+  };
+  attendees[studentId] = {
+    id: studentId,
+    studentName,
+    joinedAt: existing.joinedAt ?? Date.now(),
+    listenedSectionsCount: existing.listenedSectionsCount,
+    activeMinutes: existing.activeMinutes,
+  };
+  lsSet(lsAttendeesKey(lectureId), attendees);
+  demoEmit(`attendees:${lectureId}`);
+}
+
+/** Отметить секцию как прослушанную (для подсчёта активности студента). */
+export async function markSectionListened(
+  lectureId: string,
+  studentId: string,
+): Promise<void> {
+  const db = getFirestoreSafe();
+  if (db) {
+    await updateDoc(
+      doc(db, "lectures", lectureId, "attendees", studentId),
+      { listenedSectionsCount: increment(1) },
+    ).catch(() => {});
+    return;
+  }
+  const attendees = lsGet<Record<string, LiveAttendee>>(lsAttendeesKey(lectureId), {});
+  const attendee = attendees[studentId];
+  if (!attendee) return;
+  attendees[studentId] = {
+    ...attendee,
+    listenedSectionsCount: attendee.listenedSectionsCount + 1,
+  };
+  lsSet(lsAttendeesKey(lectureId), attendees);
+  demoEmit(`attendees:${lectureId}`);
+}
+
+/** Начислить минуты активности слушателю. */
+export async function addActiveMinutes(
+  lectureId: string,
+  studentId: string,
+  minutes: number,
+): Promise<void> {
+  const db = getFirestoreSafe();
+  if (db) {
+    await updateDoc(
+      doc(db, "lectures", lectureId, "attendees", studentId),
+      { activeMinutes: increment(minutes) },
+    ).catch(() => {});
+    return;
+  }
+  const attendees = lsGet<Record<string, LiveAttendee>>(lsAttendeesKey(lectureId), {});
+  const attendee = attendees[studentId];
+  if (!attendee) return;
+  attendees[studentId] = {
+    ...attendee,
+    activeMinutes: attendee.activeMinutes + minutes,
+  };
+  lsSet(lsAttendeesKey(lectureId), attendees);
+  demoEmit(`attendees:${lectureId}`);
+}
+
+/** Подписка на лекции преподавателя (текущие и архив). */
+export function subscribeTeacherLectures(
+  teacherId: string,
+  cb: (lectures: LiveLecture[]) => void,
+): Unsub {
+  const db = getFirestoreSafe();
+  if (db) {
+    const collectionRef = collection(db, "lectures");
+    const q = query(
+      collectionRef,
+      where("teacherId", "==", teacherId),
+      orderBy("createdAt", "desc"),
+    );
+    return onSnapshot(q, (snap) => {
+      cb(
+        snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<LiveLecture, "id">),
+        })),
+      );
+    });
+  }
+  if (!isClientSide()) return () => {};
+  ensureStorageListener();
+  const off = demoOn(`teacher:${teacherId}`, () => {
+    cb(loadTeacherLecturesDemo(teacherId));
+  });
+  cb(loadTeacherLecturesDemo(teacherId));
+  return off;
+}
+
+function loadTeacherLecturesDemo(teacherId: string): LiveLecture[] {
+  const lectures = demoIndexLectures()
+    .map((id) => demoLoadLecture(id))
+    .filter((lecture): lecture is LiveLecture => lecture !== null)
+    .filter((lecture) => lecture.teacherId === teacherId)
+    .sort((a, b) => b.createdAt - a.createdAt);
+  return lectures;
+}
+
+/** Полный список секций лекции (одноразовое чтение). */
+export async function listSections(lectureId: string): Promise<LiveSection[]> {
+  const db = getFirestoreSafe();
+  if (db) {
+    const snap = await getDocs(
+      query(
+        collection(db, "lectures", lectureId, "sections"),
+        orderBy("order", "asc"),
+      ),
+    );
+    return snap.docs.map((d) => ({
+      id: d.id,
+      ...(d.data() as Omit<LiveSection, "id">),
+    }));
+  }
+  return lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
+}

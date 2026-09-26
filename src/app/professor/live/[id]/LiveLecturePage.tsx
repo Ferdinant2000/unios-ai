@@ -20,6 +20,9 @@ import Header from "@/components/layout/Header";
 import FadeIn from "@/components/ui/FadeIn";
 import { useLanguage } from "@/context/LanguageContext";
 import { PROFESSOR } from "@/lib/mock-hemis";
+import type { LiveLecture } from "@/lib/live";
+import { subscribeLiveLecture } from "@/lib/live";
+import LiveControlRoom from "./LiveControlRoom";
 
 interface FeedEvent {
   id: number;
@@ -90,6 +93,35 @@ export default function LiveLecturePageClient() {
     }, 3000);
     return () => clearInterval(interval);
   }, [comprehension, t]);
+
+  const [liveLecture, setLiveLecture] = useState<LiveLecture | null>(null);
+  const [liveLoaded, setLiveLoaded] = useState(false);
+
+  useEffect(() => {
+    setLiveLoaded(false);
+    const off = subscribeLiveLecture(courseId, (lecture) => {
+      setLiveLecture(lecture);
+      setLiveLoaded(true);
+    });
+    return off;
+  }, [courseId]);
+
+  if (!liveLoaded) {
+    return (
+      <main className="min-h-screen">
+        <Header showBack user={PROFESSOR} />
+        <div className="flex min-h-[60vh] items-center justify-center px-6">
+          <div className="glass p-8 text-center text-sm text-slate-400 dark:text-zinc-500">
+            {t("loading")}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (liveLecture) {
+    return <LiveControlRoom lectureId={courseId} lecture={liveLecture} />;
+  }
 
   if (!course) {
     return (

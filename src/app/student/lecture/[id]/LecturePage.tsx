@@ -27,6 +27,9 @@ import Header from "@/components/layout/Header";
 import FadeIn from "@/components/ui/FadeIn";
 import { useLanguage } from "@/context/LanguageContext";
 import { STUDENT } from "@/lib/mock-hemis";
+import type { LiveLecture } from "@/lib/live";
+import { subscribeLiveLecture } from "@/lib/live";
+import LiveStudentView from "./LiveStudentView";
 
 const PLAY_EXTRA_SECONDS = 8 * 60;
 
@@ -54,6 +57,35 @@ export default function LecturePage() {
   const { t } = useLanguage();
 
   const lecture = useMemo(() => getLectureById(lectureId), [lectureId]);
+
+  const [liveLecture, setLiveLecture] = useState<LiveLecture | null>(null);
+  const [liveLoaded, setLiveLoaded] = useState(false);
+
+  useEffect(() => {
+    setLiveLoaded(false);
+    const off = subscribeLiveLecture(lectureId, (lec) => {
+      setLiveLecture(lec);
+      setLiveLoaded(true);
+    });
+    return off;
+  }, [lectureId]);
+
+  if (!liveLoaded) {
+    return (
+      <main className="min-h-screen">
+        <Header showBack user={STUDENT} />
+        <div className="flex min-h-[60vh] items-center justify-center px-6">
+          <div className="glass p-8 text-center text-sm text-slate-400 dark:text-zinc-500">
+            {t("loading")}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (liveLecture) {
+    return <LiveStudentView lectureId={lectureId} lecture={liveLecture} />;
+  }
 
   const [currentTime, setCurrentTime] = useState(0);
   const [playing, setPlaying] = useState(false);

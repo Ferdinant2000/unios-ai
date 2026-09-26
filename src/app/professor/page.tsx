@@ -1,13 +1,18 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   BarChart3,
   ChevronRight,
+  Loader2,
   Presentation,
   Radio,
   TrendingUp,
+  UserRound,
   Users,
+  X,
 } from "lucide-react";
 import {
   Avatar,
@@ -22,6 +27,8 @@ import {
   COURSES,
   PROFESSOR,
 } from "@/lib/mock-hemis";
+import { createLiveLecture } from "@/lib/live";
+import { DEMO_TEACHER_ID, getCurrentUserId, isLiveConfigured } from "@/lib/firebase";
 
 const COURSE_ROWS = [
   { courseId: "c1", students: 184, comprehension: 92 },
@@ -33,7 +40,44 @@ const STAT_ICONS = [Radio, Users, TrendingUp, BarChart3];
 
 export default function ProfessorDashboard() {
   const { t } = useLanguage();
+  const router = useRouter();
   const [firstName, ...lastNameParts] = PROFESSOR.name.split(" ");
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [topic, setTopic] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [profileId, setProfileId] = useState(DEMO_TEACHER_ID);
+
+  useEffect(() => {
+    if (isLiveConfigured) {
+      let active = true;
+      getCurrentUserId().then((id) => {
+        if (active) setProfileId(id);
+      });
+      return () => {
+        active = false;
+      };
+    }
+    return undefined;
+  }, []);
+
+  async function handleCreateLecture(e: React.FormEvent) {
+    e.preventDefault();
+    if (!title.trim() || !topic.trim() || creating) return;
+    setCreating(true);
+    try {
+      const id = await createLiveLecture({
+        title,
+        topic,
+        teacherName: PROFESSOR.name,
+      });
+      setModalOpen(false);
+      router.push(`/professor/live/${id}`);
+    } finally {
+      setCreating(false);
+    }
+  }
 
   const statLabels = [
     t("activeCourses"),
@@ -68,10 +112,22 @@ export default function ProfessorDashboard() {
             </div>
           </FadeIn>
           <FadeIn delay={0.05}>
-            <Link href="/professor/live/c1" className="btn-primary">
-              <Presentation className="h-4 w-4" />
-              {t("startLive")}
-            </Link>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href={`/professor/${profileId}`}
+                className="btn-ghost !py-2.5"
+              >
+                <UserRound className="h-4 w-4" />
+                {t("profilePage")}
+              </Link>
+              <button
+                onClick={() => setModalOpen(true)}
+                className="btn-primary !py-2.5"
+              >
+                <Presentation className="h-4 w-4" />
+                {t("startLecture")}
+              </button>
+            </div>
           </FadeIn>
         </section>
 
@@ -210,6 +266,70 @@ export default function ProfessorDashboard() {
           </FadeIn>
         </section>
       </div>
+
+      {modalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+          onClick={() => setModalOpen(false)}
+        >
+          <div
+            className="glass-strong w-full max-w-md rounded-2xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">
+                {t("startLecture")}
+              </h2>
+              <button
+                onClick={() => setModalOpen(false)}
+                aria-label={t("cancel")}
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-colors hover:border-purple-500/40 hover:text-indigo-500 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateLecture} className="mt-5 space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400">
+                  {t("lectureTitleLabel")}
+                </label>
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={t("lectureTitlePlaceholder")}
+                  autoFocus
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 transition-colors placeholder:text-slate-400 focus:border-purple-500/50 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-zinc-500"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400">
+                  {t("lectureTopicLabel")}
+                </label>
+                <input
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  placeholder={t("lectureTopicPlaceholder")}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 transition-colors placeholder:text-slate-400 focus:border-purple-500/50 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-zinc-500"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={creating || !title.trim() || !topic.trim()}
+                className="btn-primary w-full !py-3"
+              >
+                {creating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Radio className="h-4 w-4" />
+                )}
+                {t("createLecture")}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
