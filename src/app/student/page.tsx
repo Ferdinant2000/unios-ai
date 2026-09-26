@@ -151,7 +151,7 @@ export default function StudentDashboard() {
         </section>
 
         {/* AI Recommendations */}
-        {analytics?.recommendations && analytics.recommendations.length > 0 && (
+        {analytics && analytics.recommendations.length > 0 && (
           <section>
             <FadeIn>
               <div className="mb-4 flex items-center justify-between">
@@ -377,7 +377,7 @@ export default function StudentDashboard() {
             </div>
 
             {/* Quiz Performance Details */}
-            {analytics?.quizPerformance && analytics.quizPerformance.length > 0 && (
+            {analytics && analytics.quizPerformance.length > 0 && (
               <div>
                 <FadeIn>
                   <SectionLabel icon={<CheckCircle2 className="h-3.5 w-3.5" />}>
@@ -410,7 +410,7 @@ export default function StudentDashboard() {
             )}
 
             {/* Upcoming Lectures */}
-            {analytics?.upcomingLectures && analytics.upcomingLectures.length > 0 && (
+            {analytics && analytics.upcomingLectures.length > 0 && (
               <div>
                 <FadeIn>
                   <SectionLabel icon={<Clock className="h-3.5 w-3.5" />}>
@@ -441,7 +441,7 @@ export default function StudentDashboard() {
             )}
 
             {/* Recent Activity */}
-            {analytics?.recentActivity && analytics.recentActivity.length > 0 && (
+            {analytics && analytics.recentActivity.length > 0 && (
               <div>
                 <FadeIn>
                   <SectionLabel icon={<MessageSquareText className="h-3.5 w-3.5" />}>

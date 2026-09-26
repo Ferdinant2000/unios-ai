@@ -13,14 +13,6 @@ const config: Config = {
         },
         ink: "#070A13",
         surface: "#0B0F19",
-        teal: {
-          primary: "#2e4f50",
-          muted: "#2e4f50",
-        },
-        gold: {
-          primary: "#d4a845",
-          muted: "#f5d57a",
-        },
       },
       fontFamily: {
         sans: [

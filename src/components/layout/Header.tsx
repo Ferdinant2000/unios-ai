@@ -49,7 +49,7 @@ export default function Header({
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-teal-primary-20 bg-white/80 backdrop-blur-md dark:border-white/10 dark:bg-[#111827]/80">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/50 bg-slate-50/80 backdrop-blur-md dark:border-white/10 dark:bg-ink/80">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:px-6">
         <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
           {showBack && (
@@ -69,7 +69,7 @@ export default function Header({
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <div
-            className="flex shrink-0 items-center rounded-full border border-teal-primary-20 bg-white p-0.5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 sm:p-1"
+            className="flex shrink-0 items-center rounded-full border border-slate-200 bg-white p-0.5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 sm:p-1"
             role="group"
             aria-label={t("language")}
           >
@@ -81,8 +81,8 @@ export default function Header({
                 className={cn(
                   "rounded-full px-2 py-1 text-[11px] font-bold transition-all duration-150 active:scale-95 sm:px-3 sm:py-1.5 sm:text-xs",
                   lang === item.value
-                    ? "bg-gradient-gold text-[#2e4f50] shadow-gold"
-                    : "text-teal-primary hover:text-teal-primary dark:text-white/60 dark:hover:text-white",
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md shadow-purple-500/20"
+                    : "text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white",
                 )}
               >
                 {item.label}
@@ -108,13 +108,13 @@ export default function Header({
           </button>
 
           {user && (
-            <div className="flex shrink-0 items-center gap-2.5 rounded-full border border-gold/30 bg-gold/5 py-1 pl-1 pr-3 backdrop-blur-xl dark:border-gold/20 dark:bg-gold/5 sm:pr-4">
+            <div className="flex shrink-0 items-center gap-2.5 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 sm:pr-4">
               <Avatar name={user.name ?? `${user.firstName} ${user.lastName}`} size="sm" />
               <div className="hidden leading-tight sm:block">
-                <p className="max-w-[140px] truncate text-xs font-bold text-teal-primary dark:text-white">
+                <p className="max-w-[140px] truncate text-xs font-bold text-slate-900 dark:text-white">
                   {user.name ?? `${user.firstName} ${user.lastName}`}
                 </p>
-                <p className="text-[10px] text-gold">
+                <p className="text-[10px] text-slate-500 dark:text-zinc-400">
                   {t("hemisConnected")}
                 </p>
               </div>
