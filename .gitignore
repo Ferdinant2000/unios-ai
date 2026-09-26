@@ -17,6 +17,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 unios*.log
+dev.log
+
+# archives
+*.zip
 
 # typescript
 *.tsbuildinfo

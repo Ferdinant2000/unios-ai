@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   BarChart3,
   ChevronRight,
+  Mic,
   Presentation,
   Radio,
   TrendingUp,
@@ -97,10 +98,16 @@ export default function ProfessorDashboard() {
             </div>
           </FadeIn>
           <FadeIn delay={0.05}>
-            <Link href="/professor/live/c1" className="btn-primary">
-              <Presentation className="h-4 w-4" />
-              {t("startLive")}
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href="/professor/record" className="btn-ghost">
+                <Mic className="h-4 w-4" />
+                {t("recordLecture")}
+              </Link>
+              <Link href="/professor/live/c1" className="btn-primary">
+                <Presentation className="h-4 w-4" />
+                {t("startLive")}
+              </Link>
+            </div>
           </FadeIn>
         </section>
 

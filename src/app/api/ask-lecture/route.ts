@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { getLectureById } from "@/lib/mock-hemis";
 import { askGroqAboutLecture } from "@/lib/groq";
 
+interface TranscriptSegment {
+  time: string;
+  text: string;
+}
+
+interface LectureLike {
+  id: string;
+  title: string;
+  transcript: TranscriptSegment[];
+  summary: string[];
+}
+
+function isSegment(value: unknown): value is TranscriptSegment {
+  if (!value || typeof value !== "object") return false;
+  const seg = value as TranscriptSegment;
+  return typeof seg.text === "string" && typeof seg.time === "string";
+}
+
 export async function POST(request: NextRequest) {
   let body: unknown;
   try {
@@ -20,7 +38,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { question, lectureId } = body as { question?: unknown; lectureId?: unknown };
+  const { question, lectureId, title, context } = body as {
+    question?: unknown;
+    lectureId?: unknown;
+    title?: unknown;
+    context?: unknown;
+  };
 
   if (typeof question !== "string" || !question.trim()) {
     return NextResponse.json(
@@ -29,18 +52,35 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (typeof lectureId !== "string" || !lectureId.trim()) {
-    return NextResponse.json(
-      { error: "Параметр lectureId обязателен и должен быть непустой строкой" },
-      { status: 400 },
-    );
-  }
+  let lecture: LectureLike | null = null;
 
-  const lecture = getLectureById(lectureId);
-  if (!lecture) {
+  if (typeof lectureId === "string" && lectureId.trim()) {
+    const mockLecture = getLectureById(lectureId);
+    if (!mockLecture) {
+      return NextResponse.json(
+        { error: "Лекция не найдена" },
+        { status: 404 },
+      );
+    }
+    lecture = mockLecture;
+  } else if (Array.isArray(context) && typeof title === "string" && title.trim()) {
+    const transcript = context.filter(isSegment);
+    if (transcript.length === 0) {
+      return NextResponse.json(
+        { error: "Передан пустой контекст лекции" },
+        { status: 400 },
+      );
+    }
+    lecture = {
+      id: typeof lectureId === "string" ? lectureId : "live",
+      title,
+      transcript,
+      summary: [],
+    };
+  } else {
     return NextResponse.json(
-      { error: "Лекция не найдена" },
-      { status: 404 },
+      { error: "Укажите lectureId или title+context" },
+      { status: 400 },
     );
   }
 
