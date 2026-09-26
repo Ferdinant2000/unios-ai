@@ -21,6 +21,7 @@ import {
   type LiveSection,
 } from "@/lib/live";
 import { createSpeechRecognition, isSpeechRecognitionSupported } from "@/lib/speech";
+import { createMicRecorder, isRecorderSupported } from "@/lib/recorder";
 import { GlassCard, SectionLabel } from "@/components/primitives";
 import QrCode from "@/components/ui/QrCode";
 import Header from "@/components/layout/Header";
@@ -65,6 +66,10 @@ export default function LiveControlRoom({
   const recognitionRef = useRef<{ stop: () => void } | null>(null);
   const bufferRef = useRef("");
   const flushTimerRef = useRef<number | null>(null);
+  const recorderRef = useRef<{
+    stop: () => Promise<{ dataUrl: string; durationMs: number } | null>;
+  } | null>(null);
+  const recordingActiveRef = useRef(false);
 
   const speechLang =
     lang === "uz" ? "uz-UZ" : lang === "en" ? "en-US" : "ru-RU";
@@ -73,6 +78,7 @@ export default function LiveControlRoom({
     return () => {
       stopSpeaking();
       recognitionRef.current?.stop();
+      recorderRef.current?.stop();
       if (flushTimerRef.current) window.clearInterval(flushTimerRef.current);
     };
   }, []);
@@ -86,24 +92,60 @@ export default function LiveControlRoom({
     };
   }, [lectureId]);
 
-  const flushBuffer = useCallback(async () => {
-    if (!bufferRef.current.trim()) return;
-    const text = bufferRef.current.trim();
-    bufferRef.current = "";
-    setDraft("");
-    await addLiveSection(lectureId, { text });
-  }, [lectureId]);
+  // Создаёт сессию записи микрофона для текущего окна flush'а
+  const startWindowRecorder = useCallback(async () => {
+    if (!recordingActiveRef.current) return;
+    if (!isRecorderSupported()) return;
+    const recorder = await createMicRecorder();
+    recorderRef.current = recorder;
+  }, []);
 
-  const stopRecognition = useCallback(() => {
+  /**
+   * Сбрасывает буфер распознанной речи в секцию. Если в этот момент
+   * активен микрофон — к секции прикрепляется аудиосегмент с точным
+   * таймстампом и длительностью.
+   */
+  const flushBufferWithAudio = useCallback(
+    async (restartWindow: boolean) => {
+      const text = bufferRef.current.trim();
+      const recorder = recorderRef.current;
+      let audioUrl: string | null = null;
+      let duration: number | undefined;
+
+      if (recorder) {
+        const result = await recorder.stop();
+        recorderRef.current = null;
+        if (result && result.dataUrl.length <= 900_000) {
+          audioUrl = result.dataUrl;
+          duration = result.durationMs;
+        }
+      }
+
+      if (text) {
+        await addLiveSection(lectureId, { text, audioUrl, duration });
+      }
+
+      bufferRef.current = "";
+      setDraft("");
+
+      if (restartWindow && recordingActiveRef.current) {
+        await startWindowRecorder();
+      }
+    },
+    [lectureId, startWindowRecorder],
+  );
+
+  const stopRecognition = useCallback(async () => {
     recognitionRef.current?.stop();
     recognitionRef.current = null;
-    setRecording(false);
     if (flushTimerRef.current) {
       window.clearInterval(flushTimerRef.current);
       flushTimerRef.current = null;
     }
-    void flushBuffer();
-  }, [flushBuffer]);
+    recordingActiveRef.current = false;
+    await flushBufferWithAudio(false);
+    setRecording(false);
+  }, [flushBufferWithAudio]);
 
   const startRecognition = useCallback(() => {
     setSttError(null);
@@ -133,14 +175,16 @@ export default function LiveControlRoom({
       return;
     }
     recognitionRef.current = handle;
+    recordingActiveRef.current = true;
     setRecording(true);
+    void startWindowRecorder();
     flushTimerRef.current = window.setInterval(() => {
-      void flushBuffer();
+      void flushBufferWithAudio(true);
     }, AUTO_FLUSH_MS);
-  }, [speechLang, t, flushBuffer]);
+  }, [speechLang, t, flushBufferWithAudio, startWindowRecorder]);
 
   const endLesson = useCallback(async () => {
-    stopRecognition();
+    await stopRecognition();
     await setLiveLectureStatus(lectureId, "ended");
   }, [lectureId, stopRecognition]);
 
@@ -371,7 +415,7 @@ export default function LiveControlRoom({
                   </div>
 
                   <button
-                    onClick={() => void flushBuffer()}
+                    onClick={() => void flushBufferWithAudio(true)}
                     disabled={!draft.trim()}
                     className="btn-ghost w-full disabled:opacity-40"
                   >

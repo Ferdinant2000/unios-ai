@@ -27,6 +27,7 @@ import { GlassCard, StatusPill } from "@/components/primitives";
 import Header from "@/components/layout/Header";
 import FadeIn from "@/components/ui/FadeIn";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
 import { STUDENT } from "@/lib/mock-hemis";
 import type { TranslationKey } from "@/lib/translations";
 
@@ -44,6 +45,8 @@ export default function LiveStudentView({
   lecture: LiveLecture;
 }) {
   const { t, lang } = useLanguage();
+  const { user } = useAuth();
+  const studentName = user?.name ?? STUDENT.name;
 
   const [studentId, setStudentId] = useState<string | null>(null);
   const [joined, setJoined] = useState(false);
@@ -67,7 +70,7 @@ export default function LiveStudentView({
     getCurrentUserId().then((id) => {
       if (!active) return;
       setStudentId(id);
-      joinLiveLecture(lectureId, STUDENT.name).then(() => {
+      joinLiveLecture(lectureId, studentName).then(() => {
         if (active) setJoined(true);
       });
     });

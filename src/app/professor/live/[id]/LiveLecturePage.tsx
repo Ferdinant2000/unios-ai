@@ -22,6 +22,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { PROFESSOR } from "@/lib/mock-hemis";
 import type { LiveLecture } from "@/lib/live";
 import { subscribeLiveLecture } from "@/lib/live";
+import RequireRole from "@/components/auth/RequireRole";
 import LiveControlRoom from "./LiveControlRoom";
 
 interface FeedEvent {
@@ -37,7 +38,15 @@ function nowTime(): string {
   ).padStart(2, "0")}`;
 }
 
-export default function LiveLecturePageClient() {
+export default function LiveLecturePage() {
+  return (
+    <RequireRole role="professor">
+      <LiveLecturePageClient />
+    </RequireRole>
+  );
+}
+
+function LiveLecturePageClient() {
   const params = useParams<{ id: string }>();
   const courseId = Array.isArray(params.id) ? params.id[0] : params.id;
   const { t } = useLanguage();

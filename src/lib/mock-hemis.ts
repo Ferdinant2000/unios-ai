@@ -269,3 +269,42 @@ export function buildLectureAnswer(
 
   return { answer, timestampRef: match.time };
 }
+
+interface AnswerableSection {
+  text: string;
+  timestamp: number;
+}
+
+export function buildSectionAnswer(
+  sections: AnswerableSection[],
+  question: string,
+): { answer: string; timestampRef: string } {
+  const sorted = [...sections].sort((a, b) => a.timestamp - b.timestamp);
+  if (sorted.length === 0) {
+    return {
+      answer:
+        "Секции лекции пока недоступны — задайте вопрос позже, когда появятся записи распознанной речи.",
+      timestampRef: "",
+    };
+  }
+  const queryWords = tokenize(question);
+  let best = sorted[sorted.length - 1];
+  let bestScore = -1;
+  for (const section of sorted) {
+    const sectionWords = new Set(tokenize(section.text));
+    const score = queryWords.reduce(
+      (acc, word) => acc + (sectionWords.has(word) ? 1 : 0),
+      0,
+    );
+    if (score > bestScore) {
+      bestScore = score;
+      best = section;
+    }
+  }
+  const time = formatTime(Math.floor(best.timestamp / 1000));
+  const firstChar = best.text.charAt(0).toLowerCase() + best.text.slice(1);
+  return {
+    answer: `На ${time} профессор объяснил, что ${firstChar} Если нужны детали по другому фрагменту лекции — уточни таймкод или тему.`,
+    timestampRef: time,
+  };
+}

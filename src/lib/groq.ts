@@ -1,19 +1,24 @@
 import Groq from "groq-sdk";
-import type { Lecture } from "@/types";
 
 // Модель выбирается из списка, доступного ключу GROQ_API_KEY
 // (GET https://api.groq.com/openai/v1/models). llama-3.3-70b-versatile
 // для этого аккаунта недоступен (404 model_not_found); gpt-oss-20b — есть.
 const GROQ_MODEL = "openai/gpt-oss-20b";
 
+export interface LectureContextSegment {
+  time: string;
+  text: string;
+}
+
 export async function askGroqAboutLecture(
-  lecture: Lecture,
+  title: string,
+  context: LectureContextSegment[],
   question: string,
 ): Promise<{ answer: string; timestampRef?: string } | null> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) return null;
 
-  const transcriptContext = lecture.transcript
+  const transcriptContext = context
     .map((seg) => `[${seg.time}] ${seg.text}`)
     .join("\n\n");
 
@@ -38,11 +43,8 @@ export async function askGroqAboutLecture(
 🔗 Связь с другими темами лекции (если есть)
 ❓ Наводящий вопрос для самопроверки
 
-Транскрипция лекции "${lecture.title}":
-${transcriptContext}
-
-Краткий конспект:
-${lecture.summary.join("\n")}`;
+Транскрипция лекции "${title}":
+${transcriptContext}`;
 
   try {
     const groq = new Groq({ apiKey });

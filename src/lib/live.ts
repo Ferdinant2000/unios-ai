@@ -1,6 +1,7 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -18,6 +19,7 @@ import {
   getFirestoreSafe,
   isLiveConfigured,
 } from "@/lib/firebase";
+import { getCourseById, getLectureById, timeToSeconds } from "@/lib/mock-hemis";
 
 /**
  * Схема Firestore:
@@ -46,6 +48,8 @@ export interface LiveSection {
   audioUrl: string | null;
   timestamp: number;
   order: number;
+  /** Длительность аудиосегмента в мс (для плеера). */
+  duration?: number;
 }
 
 export interface LiveAttendee {
@@ -269,7 +273,7 @@ export function subscribeSections(
 /** Добавляет секцию распознанной речи. */
 export async function addLiveSection(
   lectureId: string,
-  input: { text: string; audioUrl?: string | null },
+  input: { text: string; audioUrl?: string | null; duration?: number },
 ): Promise<void> {
   const text = input.text.trim();
   if (!text) return;
@@ -277,6 +281,7 @@ export async function addLiveSection(
   const data = {
     text,
     audioUrl: input.audioUrl ?? null,
+    duration: input.duration,
     timestamp: now,
     order: now,
   };
@@ -292,6 +297,79 @@ export async function addLiveSection(
   };
   lsSet(lsSectionsKey(lectureId), [...sections, section]);
   demoEmit(`sections:${lectureId}`);
+}
+
+/** Обновляет текст/аудио секции (редактор преподавателя). */
+export async function updateLiveSection(
+  lectureId: string,
+  sectionId: string,
+  patch: Partial<Pick<LiveSection, "text" | "audioUrl" | "duration">>,
+): Promise<void> {
+  const db = getFirestoreSafe();
+  if (db) {
+    await updateDoc(doc(db, "lectures", lectureId, "sections", sectionId), patch);
+    return;
+  }
+  const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
+  const next = sections.map((section) =>
+    section.id === sectionId ? { ...section, ...patch } : section,
+  );
+  lsSet(lsSectionsKey(lectureId), next);
+  demoEmit(`sections:${lectureId}`);
+}
+
+/** Удаляет секцию (редактор преподавателя). */
+export async function deleteLiveSection(
+  lectureId: string,
+  sectionId: string,
+): Promise<void> {
+  const db = getFirestoreSafe();
+  if (db) {
+    await deleteDoc(doc(db, "lectures", lectureId, "sections", sectionId));
+    return;
+  }
+  const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
+  lsSet(
+    lsSectionsKey(lectureId),
+    sections.filter((section) => section.id !== sectionId),
+  );
+  demoEmit(`sections:${lectureId}`);
+}
+
+/**
+ * Локальный архив для демо-лекций из mock-hemis (lec-*).
+ * Используется, когда лекция ещё не создана как live — читается без записи
+ * в Firestore, чтобы не засорять общую коллекцию демо-контентом.
+ */
+export function buildLocalArchive(
+  id: string,
+): { lecture: LiveLecture; sections: LiveSection[]; localOnly: boolean } | null {
+  const mock = getLectureById(id);
+  if (!mock) return null;
+  const course = getCourseById(mock.courseId);
+  const lecture: LiveLecture = {
+    id: mock.id,
+    title: mock.title,
+    topic: mock.title,
+    teacherId: DEMO_TEACHER_ID,
+    teacherName: course?.professorName ?? "—",
+    status: "ended",
+    createdAt: 0,
+  };
+  const sections: LiveSection[] = mock.transcript.map((segment, index) => {
+    const start = timeToSeconds(segment.time) * 1000;
+    const nextStart =
+      timeToSeconds(mock.transcript[index + 1]?.time ?? "99:59") * 1000;
+    return {
+      id: `seed-${index}`,
+      text: segment.text,
+      audioUrl: null,
+      timestamp: start,
+      order: index,
+      duration: Math.max(nextStart - start, 25_000),
+    };
+  });
+  return { lecture, sections, localOnly: true };
 }
 
 /** Подписка на список слушателей. */

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLectureById } from "@/lib/mock-hemis";
-import { askGroqAboutLecture } from "@/lib/groq";
+import {
+  askGroqAboutLecture,
+  type LectureContextSegment,
+} from "@/lib/groq";
 
 export async function POST(request: NextRequest) {
   if (!process.env.GROQ_API_KEY) {
@@ -15,28 +17,42 @@ export async function POST(request: NextRequest) {
 
   const question =
     typeof body?.question === "string" ? body.question.trim() : "";
-  const lectureId =
-    typeof body?.lectureId === "string" ? body.lectureId.trim() : "";
+  const title = typeof body?.title === "string" ? body.title.trim() : "";
 
-  if (!question || !lectureId) {
+  const context: LectureContextSegment[] = Array.isArray(body?.context)
+    ? body.context
+        .filter(
+          (segment: unknown): segment is LectureContextSegment =>
+            Boolean(
+              segment &&
+                typeof (segment as LectureContextSegment).time === "string" &&
+                typeof (segment as LectureContextSegment).text === "string",
+            ),
+        )
+        .map((segment: LectureContextSegment) => ({
+          time: segment.time,
+          text: segment.text,
+        }))
+    : [];
+
+  if (!question) {
     return NextResponse.json(
-      { fallback: true, error: "Missing 'question' or 'lectureId'." },
+      { fallback: true, error: "Missing 'question'." },
       { status: 400 },
     );
   }
 
-  const lecture = getLectureById(lectureId);
-  if (!lecture) {
+  if (!title || context.length === 0) {
     return NextResponse.json(
-      { fallback: true, error: "Lecture not found." },
-      { status: 404 },
+      { fallback: true, error: "Missing lecture context ('title'/'context')." },
+      { status: 400 },
     );
   }
 
-  const result = await askGroqAboutLecture(lecture, question);
+  const result = await askGroqAboutLecture(title, context, question);
   if (!result) {
     // AI недоступен (GROQ_API_KEY не задан / ошибка API) → клиентский чат
-    // автоматически переключится на локальный мок buildLectureAnswer.
+    // автоматически переключится на локальный фоллбэк buildSectionAnswer.
     return NextResponse.json(
       { fallback: true, error: "Groq AI unavailable." },
       { status: 200 },

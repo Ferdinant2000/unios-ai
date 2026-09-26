@@ -22,13 +22,16 @@ import {
 import Header from "@/components/layout/Header";
 import FadeIn from "@/components/ui/FadeIn";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
 import {
   CLASSROOM_ANALYTICS,
   COURSES,
   PROFESSOR,
 } from "@/lib/mock-hemis";
+import type { User } from "@/types";
 import { createLiveLecture } from "@/lib/live";
 import { DEMO_TEACHER_ID, getCurrentUserId, isLiveConfigured } from "@/lib/firebase";
+import RequireRole from "@/components/auth/RequireRole";
 
 const COURSE_ROWS = [
   { courseId: "c1", students: 184, comprehension: 92 },
@@ -41,7 +44,18 @@ const STAT_ICONS = [Radio, Users, TrendingUp, BarChart3];
 export default function ProfessorDashboard() {
   const { t } = useLanguage();
   const router = useRouter();
-  const [firstName, ...lastNameParts] = PROFESSOR.name.split(" ");
+  const { user } = useAuth();
+
+  const headerUser: User = user
+    ? {
+        role: "professor",
+        name: user.name,
+        hemisId: user.email ?? user.uid,
+        avatar: (user.name || "?").slice(0, 2).toUpperCase(),
+      }
+    : PROFESSOR;
+
+  const [firstName, ...lastNameParts] = headerUser.name.split(" ");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -70,7 +84,7 @@ export default function ProfessorDashboard() {
       const id = await createLiveLecture({
         title,
         topic,
-        teacherName: PROFESSOR.name,
+        teacherName: headerUser.name,
       });
       setModalOpen(false);
       router.push(`/professor/live/${id}`);
@@ -93,24 +107,25 @@ export default function ProfessorDashboard() {
   ];
 
   return (
-    <main className="min-h-screen">
-      <Header user={PROFESSOR} />
+    <RequireRole role="professor">
+      <main className="min-h-screen">
+        <Header user={headerUser} />
 
-      <div className="mx-auto w-full max-w-6xl px-6 pb-20">
-        <section className="flex flex-col gap-6 pt-8 md:flex-row md:items-end md:justify-between">
-          <FadeIn>
-            <div>
-              <p className="text-sm text-slate-500 dark:text-zinc-400">
-                {t("professor")}
-              </p>
-              <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white md:text-4xl">
-                {firstName} <span className="text-gradient">{lastNameParts.join(" ")}</span>
-              </h1>
-              <p className="mt-2 text-sm text-slate-400 dark:text-zinc-500">
-                {PROFESSOR.hemisId}
-              </p>
-            </div>
-          </FadeIn>
+        <div className="mx-auto w-full max-w-6xl px-6 pb-20">
+          <section className="flex flex-col gap-6 pt-8 md:flex-row md:items-end md:justify-between">
+            <FadeIn>
+              <div>
+                <p className="text-sm text-slate-500 dark:text-zinc-400">
+                  {t("professor")}
+                </p>
+                <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white md:text-4xl">
+                  {firstName} <span className="text-gradient">{lastNameParts.join(" ")}</span>
+                </h1>
+                <p className="mt-2 text-sm text-slate-400 dark:text-zinc-500">
+                  {headerUser.hemisId}
+                </p>
+              </div>
+            </FadeIn>
           <FadeIn delay={0.05}>
             <div className="flex flex-wrap items-center gap-2">
               <Link
@@ -330,6 +345,7 @@ export default function ProfessorDashboard() {
           </div>
         </div>
       )}
-    </main>
+      </main>
+    </RequireRole>
   );
 }

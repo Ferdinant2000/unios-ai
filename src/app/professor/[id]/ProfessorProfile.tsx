@@ -16,6 +16,7 @@ import FadeIn from "@/components/ui/FadeIn";
 import { useLanguage } from "@/context/LanguageContext";
 import { PROFESSOR } from "@/lib/mock-hemis";
 import type { TranslationKey } from "@/lib/translations";
+import RequireRole from "@/components/auth/RequireRole";
 
 const STATUS_KEYS: Record<LiveStatus, TranslationKey> = {
   waiting: "liveStatusWaiting",
@@ -31,7 +32,15 @@ function formatDate(timestamp: number): string {
   });
 }
 
-export default function ProfessorProfile() {
+export default function ProfessorProfilePage() {
+  return (
+    <RequireRole role="professor">
+      <ProfessorProfileContent />
+    </RequireRole>
+  );
+}
+
+function ProfessorProfileContent() {
   const params = useParams<{ id: string }>();
   const teacherId = Array.isArray(params.id) ? params.id[0] : params.id;
   const { t } = useLanguage();

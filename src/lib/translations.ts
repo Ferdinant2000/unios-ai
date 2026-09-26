@@ -350,6 +350,49 @@ const ru = {
   listenedSectionsShort: "секций прослушано",
   attendanceFixed: "Присутствие зафиксировано",
   loading: "Загрузка…",
+
+  // Auth (Google)
+  signInTitle: "Вход в UniOS AI",
+  signInSubtitle:
+    "Продолжите через Google — учебный аккаунт создаётся автоматически, данные сохраняются в Firestore.",
+  signInGoogle: "Войти через Google",
+  signInBusy: "Входим…",
+  signInError: "Не удалось войти через Google. Попробуйте ещё раз.",
+  signInGreeting: "С возвращением, {name}!",
+  signInDemo:
+    "Демо-режим активен («NEXT_PUBLIC_FIREBASE_CONFIG» не задан). Вход через Google отключён — используйте кабинеты из меню.",
+  logout: "Выйти",
+  goToStudent: "В кабинет студента",
+  goToDashboard: "В кабинет преподавателя",
+  loginRequiredTitle: "Требуется авторизация",
+  professorOnlyTitle: "Только для преподавателей",
+  loginRequiredText:
+    "Эта страница доступна только для преподавателей. Войдите через Google — если email указан в списке преподавателей, кабинет откроется автоматически.",
+  goToLogin: "Перейти ко входу",
+
+  // AudioPlayer / Archive lecture
+  playbackNow: "Воспроизведение",
+  seekBack10: "Назад 10 сек",
+  seekForward10: "Вперёд 10 сек",
+  speed: "Скорость",
+  audioArchiveHint: "Клик по абзацу перематывает аудио к таймкоду.",
+  noAudioSections: "Аудиосегменты отсутствуют — идёт имитация воспроизведения по таймкодам.",
+  editSection: "Редактировать",
+  save: "Сохранить",
+  deleteSection: "Удалить секцию",
+  deleteSectionConfirm: "Удалить эту секцию навсегда?",
+  reRecord: "Перезаписать аудио",
+  reRecordStop: "Стоп",
+  recordingHint: "Идёт запись… кликните, чтобы остановить",
+  audioSaved: "Аудио обновлено",
+  sectionSaving: "Сохраняю…",
+  sectionDeleted: "Секция удалена",
+  professorEditorHint:
+    "Режим преподавателя: редактируйте текст секции, удаляйте или перезаписывайте аудио — правки сохраняются в Firestore.",
+  activityLive: "Активность",
+  archiveLectureTitle: "Лекция из архива",
+  audioTooLarge: "Аудиосегмент слишком большой — запись не сохранена",
+  course: "Курс",
 } as const;
 
 export type TranslationKey = keyof typeof ru;
@@ -695,6 +738,49 @@ const uz: Record<TranslationKey, string> = {
   listenedSectionsShort: "bo'lim tinglandi",
   attendanceFixed: "Davomat qayd etildi",
   loading: "Yuklanmoqda…",
+
+  // Auth (Google)
+  signInTitle: "UniOS AI ga kirish",
+  signInSubtitle:
+    "Google orqali davom eting — o'quv akkaunti avtomatik yaratiladi, ma'lumotlar Firestore'da saqlanadi.",
+  signInGoogle: "Google orqali kiring",
+  signInBusy: "Kirilmoqda…",
+  signInError: "Google orqali kirish amalga oshmadi. Qayta urinib ko'ring.",
+  signInGreeting: "Xush kelibsiz, {name}!",
+  signInDemo:
+    "Demo rejim faol («NEXT_PUBLIC_FIREBASE_CONFIG» sozlanmagan). Google orqali kirish o'chirilgan — menyudagi kabinetlardan foydalaning.",
+  logout: "Chiqish",
+  goToStudent: "Talaba kabineti",
+  goToDashboard: "O'qituvchi kabineti",
+  loginRequiredTitle: "Avtorizatsiya talab qilinadi",
+  professorOnlyTitle: "Faqat o'qituvchilar uchun",
+  loginRequiredText:
+    "Bu sahifa faqat o'qituvchilar uchun. Google orqali kiring — email o'qituvchilar ro'yxatida bo'lsa, kabinet avtomatik ochiladi.",
+  goToLogin: "Kirish sahifasiga o'tish",
+
+  // AudioPlayer / Archive lecture
+  playbackNow: "Ijro etish",
+  seekBack10: "10 soniya orqaga",
+  seekForward10: "10 soniya oldinga",
+  speed: "Tezlik",
+  audioArchiveHint: "Xatboshiga bosish audio'ni vaqt belgisiga qaytaradi.",
+  noAudioSections: "Audio segmentlar yo'q — vaqt belgilari bo'yicha ijro simulyatsiya qilinadi.",
+  editSection: "Tahrirlash",
+  save: "Saqlash",
+  deleteSection: "Bo'limni o'chirish",
+  deleteSectionConfirm: "Bu bo'limni butunlay o'chirish kerakmi?",
+  reRecord: "Audioni qayta yozish",
+  reRecordStop: "To'xtatish",
+  recordingHint: "Yozuv ketmoqda… to'xtatish uchun bosing",
+  audioSaved: "Audio yangilandi",
+  sectionSaving: "Saqlanmoqda…",
+  sectionDeleted: "Bo'lim o'chirildi",
+  professorEditorHint:
+    "O'qituvchi rejimi: bo'lim matnini tahrirlang, o'chiring yoki audioni qayta yozing — o'zgarishlar Firestore'da saqlanadi.",
+  activityLive: "Faollik",
+  archiveLectureTitle: "Arxivdagi ma'ruza",
+  audioTooLarge: "Audio segment juda katta — yozuv saqlanmadi",
+  course: "Kurs",
 };
 
 const en: Record<TranslationKey, string> = {
@@ -1037,6 +1123,49 @@ const en: Record<TranslationKey, string> = {
   listenedSectionsShort: "sections listened",
   attendanceFixed: "Attendance recorded",
   loading: "Loading…",
+
+  // Auth (Google)
+  signInTitle: "Sign in to UniOS AI",
+  signInSubtitle:
+    "Continue with Google — your study account is created automatically, data is stored in Firestore.",
+  signInGoogle: "Sign in with Google",
+  signInBusy: "Signing in…",
+  signInError: "Google sign-in failed. Please try again.",
+  signInGreeting: "Welcome back, {name}!",
+  signInDemo:
+    "Demo mode is active (NEXT_PUBLIC_FIREBASE_CONFIG is not set). Google sign-in is disabled — use the dashboards from the menu.",
+  logout: "Sign out",
+  goToStudent: "Student dashboard",
+  goToDashboard: "Professor dashboard",
+  loginRequiredTitle: "Authentication required",
+  professorOnlyTitle: "Professors only",
+  loginRequiredText:
+    "This page is available for professors only. Sign in with Google — if your email is in the professor list, the dashboard opens automatically.",
+  goToLogin: "Go to sign-in",
+
+  // AudioPlayer / Archive lecture
+  playbackNow: "Playback",
+  seekBack10: "Back 10 sec",
+  seekForward10: "Forward 10 sec",
+  speed: "Speed",
+  audioArchiveHint: "Click a paragraph to seek the audio to its timecode.",
+  noAudioSections: "No audio segments — playback is simulated by timecodes.",
+  editSection: "Edit",
+  save: "Save",
+  deleteSection: "Delete section",
+  deleteSectionConfirm: "Delete this section permanently?",
+  reRecord: "Re-record audio",
+  reRecordStop: "Stop",
+  recordingHint: "Recording… click to stop",
+  audioSaved: "Audio updated",
+  sectionSaving: "Saving…",
+  sectionDeleted: "Section deleted",
+  professorEditorHint:
+    "Professor mode: edit section text, delete or re-record audio — changes are saved to Firestore.",
+  activityLive: "Activity",
+  archiveLectureTitle: "Archived lecture",
+  audioTooLarge: "Audio segment is too large — recording was not saved",
+  course: "Course",
 };
 
 export const translations: Record<Lang, Record<TranslationKey, string>> = {

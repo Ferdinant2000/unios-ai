@@ -21,12 +21,14 @@ import {
 import Header from "@/components/layout/Header";
 import FadeIn from "@/components/ui/FadeIn";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
 import {
   COURSES,
   LECTURES,
   STUDENT,
   getLecturesByCourse,
 } from "@/lib/mock-hemis";
+import type { User } from "@/types";
 
 const GPA_BARS = [
   { label: "AI", percentage: 92, score: "92%" },
@@ -38,8 +40,18 @@ const STAT_ICONS = [BookOpen, Clock, CheckCircle2, MessageSquareText];
 
 export default function StudentDashboard() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const recentLectures = [...LECTURES].slice(0, 3);
-  const [firstName, ...lastNameParts] = STUDENT.name.split(" ");
+
+  const headerUser: User = user
+    ? {
+        role: "student",
+        name: user.name,
+        hemisId: user.email ?? user.uid,
+        avatar: (user.name || "?").slice(0, 2).toUpperCase(),
+      }
+    : STUDENT;
+  const [firstName, ...lastNameParts] = headerUser.name.split(" ");
 
   const statLabels = [
     t("subjectsCount"),
@@ -52,7 +64,7 @@ export default function StudentDashboard() {
 
   return (
     <main className="min-h-screen w-full max-w-full overflow-x-hidden">
-      <Header user={STUDENT} />
+      <Header user={headerUser} />
 
       <div className="mx-auto w-full max-w-7xl space-y-4 px-3 py-4 sm:space-y-6 sm:px-6">
         <section>
@@ -63,7 +75,7 @@ export default function StudentDashboard() {
             {firstName} <span className="text-gradient">{lastNameParts.join(" ")}</span>
           </h1>
           <p className="mt-2 text-sm text-slate-400 dark:text-zinc-500">
-            {STUDENT.hemisId}
+            {headerUser.hemisId}
           </p>
         </section>
 
