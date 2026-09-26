@@ -1,97 +1,97 @@
 import type { TranslationKey } from "@/lib/translations";
 
-export interface PricingPeriod {
+/**
+ * B2C-подписки UniOS AI.
+ * Тексты хранятся как ключи переводов — узбекский, русский и английский
+ * словари в `src/lib/translations.ts`.
+ */
+
+export type SubscriptionPlanId = "baza" | "pro" | "ultimate";
+
+export interface SubscriptionPlan {
+  id: SubscriptionPlanId;
+  /** Название тарифа (Baza AI / Pro AI Prep / Ultimate Pass). */
+  planKey: TranslationKey;
+  /** Срок подписки (3 Oy / 6 Oy / 12 Oy · Yillik). */
+  durationKey: TranslationKey;
+  /** Целевая аудитория тарифа. */
+  audienceKey: TranslationKey;
+  /** Период в месяцах (используется для endDate). */
   months: number;
-  discount: number;
-  recommended?: boolean;
-  bestValue?: boolean;
-}
-
-export const PRICING_PERIODS: PricingPeriod[] = [
-  { months: 3, discount: 0 },
-  { months: 6, discount: 10 },
-  { months: 9, discount: 15, recommended: true },
-  { months: 12, discount: 25, bestValue: true },
-];
-
-export type PricingTierId = "filial" | "standard" | "large" | "enterprise";
-
-export interface PricingTier {
-  id: PricingTierId;
-  nameKey: TranslationKey;
-  limitKey: TranslationKey;
-  basePricePer3Months: number | null;
-  monthlyEquivalent: number | null;
-  badgeKey?: TranslationKey;
+  /** Рекламная цена за месяц ($15 / $12 / $10). */
+  pricePerMonth: number;
+  /** Итоговая сумма списания ($45 / $72 / $120). */
+  totalPrice: number;
+  /** Альтернативный месячный пересчёт (например, $17/oy у Baza). */
+  monthlyRecalc: number | null;
+  /** Бейдж экономии (15% / 25% / 40%). */
+  savingsPercent: number;
+  /** Бейдж «Популярный / Mashhur». */
   popular?: boolean;
+  badgeKey?: TranslationKey;
+  /** Ultimate Pass — доступ к родительскому кабинету. */
+  parentDashboard?: boolean;
   featuresKey: TranslationKey[];
 }
 
-export const PRICING_TIERS: PricingTier[] = [
+export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
-    id: "filial",
-    nameKey: "pricingTierFilial",
-    limitKey: "pricingLimitFilial",
-    basePricePer3Months: 1200,
-    monthlyEquivalent: 400,
+    id: "baza",
+    planKey: "pricingPlanBaza",
+    durationKey: "pricingDurationBaza",
+    audienceKey: "pricingAudienceBaza",
+    months: 3,
+    pricePerMonth: 15,
+    totalPrice: 45,
+    monthlyRecalc: 17,
+    savingsPercent: 15,
     featuresKey: [
-      "pricingFeatureBase1",
-      "pricingFeatureBase2",
-      "pricingFeatureBase3",
-      "pricingFeatureBase4",
+      "pricingFeatBaza1",
+      "pricingFeatBaza2",
+      "pricingFeatBaza3",
+      "pricingFeatBaza4",
     ],
   },
   {
-    id: "standard",
-    nameKey: "pricingTierStandard",
-    limitKey: "pricingLimitStandard",
-    basePricePer3Months: 2400,
-    monthlyEquivalent: 800,
-    featuresKey: [
-      "pricingFeatureStd1",
-      "pricingFeatureStd2",
-      "pricingFeatureStd3",
-      "pricingFeatureStd4",
-    ],
-  },
-  {
-    id: "large",
-    nameKey: "pricingTierLarge",
-    limitKey: "pricingLimitLarge",
-    basePricePer3Months: 4200,
-    monthlyEquivalent: 1400,
-    badgeKey: "pricingBadgePopular",
+    id: "pro",
+    planKey: "pricingPlanPro",
+    durationKey: "pricingDurationPro",
+    audienceKey: "pricingAudiencePro",
+    months: 6,
+    pricePerMonth: 12,
+    totalPrice: 72,
+    monthlyRecalc: null,
+    savingsPercent: 25,
     popular: true,
+    badgeKey: "pricingBadgePopular",
     featuresKey: [
-      "pricingFeatureLarge1",
-      "pricingFeatureLarge2",
-      "pricingFeatureLarge3",
-      "pricingFeatureLarge4",
+      "pricingFeatPro1",
+      "pricingFeatPro2",
+      "pricingFeatPro3",
+      "pricingFeatPro4",
     ],
   },
   {
-    id: "enterprise",
-    nameKey: "pricingTierEnterprise",
-    limitKey: "pricingLimitEnterprise",
-    basePricePer3Months: null,
-    monthlyEquivalent: null,
+    id: "ultimate",
+    planKey: "pricingPlanUltimate",
+    durationKey: "pricingDurationUltimate",
+    audienceKey: "pricingAudienceUltimate",
+    months: 12,
+    pricePerMonth: 10,
+    totalPrice: 120,
+    monthlyRecalc: null,
+    savingsPercent: 40,
+    parentDashboard: true,
     featuresKey: [
-      "pricingFeatureEnt1",
-      "pricingFeatureEnt2",
-      "pricingFeatureEnt3",
-      "pricingFeatureEnt4",
+      "pricingFeatUlt1",
+      "pricingFeatUlt2",
+      "pricingFeatUlt3",
+      "pricingFeatUlt4",
     ],
   },
 ];
 
-export function calcPricing(
-  monthlyEquivalent: number,
-  months: number,
-  discount: number,
-) {
-  const total = monthlyEquivalent * months * (1 - discount / 100);
-  return {
-    total: Math.round(total),
-    perMonth: Math.round(total / months),
-  };
+/** Итоговый месячный пересчёт для карточки (рекламный или альтернативный). */
+export function planMonthlyText(plan: SubscriptionPlan): number {
+  return plan.pricePerMonth;
 }
