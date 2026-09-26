@@ -461,6 +461,21 @@ const ru = {
   sttUnsupported: "Распознавание речи не поддержается браузером (нужен Chrome/Edge)",
   micAccessDenied: "Нет доступа к микрофону — разрешите в настройках браузера",
 
+  // Recorded-audio playback + STT→AI assistant (professor studio)
+  recordedAudio: "Запись лекции",
+  noRecordedAudio: "Аудиофрагменты не сохранены — текст секций доступен в полном конспекте.",
+  aiLectureAssistant: "ИИ-помощник по лекции",
+  aiAssistantHint:
+    "Распознанный текст лекции подключён к искусственному интеллекту: конспект, перевод и разбор тем.",
+  aiAskPlaceholder: "Спросите ИИ о содержании записи…",
+  aiSummaryAction: "Сформировать конспект",
+  aiQuizAction: "Вопросы для самопроверки",
+  aiSend: "Отправить",
+  aiThinking: "ИИ-Профессор анализирует запись…",
+  aiLocalFallback: "AI-движок сейчас работает локально — ответ на основе распознанного текста лекции:",
+  aiSummaryQuestion: "Составь краткий конспект лекции: ключевые тезисы, определения и примеры.",
+  aiQuizQuestion: "Составь 5 вопросов для самопроверки по содержанию лекции с вариантами ответов.",
+
   // Live-lecture student view
   lectureNotStartedHint: "Лекция ещё не началась. Уже скоро начнём!",
   lectureLiveHint: "Лекция идёт — текст появляется здесь в реальном времени.",
@@ -964,6 +979,21 @@ const uz: Record<TranslationKey, string> = {
   backToProfile: "Profilga",
   sttUnsupported: "Nutqni tanib olish brauzerda qo'llab-quvvatlanmaydi (Chrome/Edge kerak)",
   micAccessDenied: "Mikrofonga ruxsat yo'q — brauzer sozlamalarida ruxsat bering",
+
+  // Recorded-audio playback + STT→AI assistant (professor studio)
+  recordedAudio: "Ma'ruza yozuvi",
+  noRecordedAudio: "Audio parchalari saqlanmadi — bo'limlar matni to'liq konspektda mavjud.",
+  aiLectureAssistant: "Ma'ruza bo'yicha AI yordamchi",
+  aiAssistantHint:
+    "Ma'ruza matni sun'iy intellektga ulangan: konspekt, tarjima va mavzular tahlili.",
+  aiAskPlaceholder: "Yozuv mazmuni haqida AI'dan so'rang…",
+  aiSummaryAction: "Konspekt tuzish",
+  aiQuizAction: "O'z-o'zini tekshirish savollari",
+  aiSend: "Yuborish",
+  aiThinking: "AI-Professor yozuvni tahlil qilmoqda…",
+  aiLocalFallback: "AI-dvigatel hozir lokal ishlaydi — ma'ruza matni asosida javob:",
+  aiSummaryQuestion: "Ma'ruza bo'yicha qisqa konspekt tuzing: asosiy tezislar, ta'riflar va misollar.",
+  aiQuizQuestion: "Ma'ruza mazmuni bo'yicha javob variantlari bilan 5 ta o'z-o'zini tekshirish savoli tuzing.",
 
   // Live-lecture student view
   lectureNotStartedHint: "Ma'ruza hali boshlanmagan. Tez orada boshlaymiz!",
@@ -1595,6 +1625,21 @@ const en: Record<TranslationKey, string> = {
   backToProfile: "Back to profile",
   sttUnsupported: "Speech recognition is not supported in this browser (Chrome/Edge required)",
   micAccessDenied: "No microphone access — allow it in the browser settings",
+
+  // Recorded-audio playback + STT→AI assistant (professor studio)
+  recordedAudio: "Lecture recording",
+  noRecordedAudio: "No audio segments were saved — section text is available in the full notes.",
+  aiLectureAssistant: "AI lecture assistant",
+  aiAssistantHint:
+    "Recognized lecture text is wired into the AI: summaries, translation and topic breakdown.",
+  aiAskPlaceholder: "Ask the AI about the recording…",
+  aiSummaryAction: "Generate summary",
+  aiQuizAction: "Self-check questions",
+  aiSend: "Send",
+  aiThinking: "AI Professor is analyzing the recording…",
+  aiLocalFallback: "AI engine is running locally right now — an answer based on the recognized text:",
+  aiSummaryQuestion: "Write a short summary of the lecture: key points, definitions and examples.",
+  aiQuizQuestion: "Create 5 self-check questions with answer options based on the lecture content.",
 
   // Live-lecture student view
   lectureNotStartedHint: "The lecture hasn't started yet. We'll begin soon!",

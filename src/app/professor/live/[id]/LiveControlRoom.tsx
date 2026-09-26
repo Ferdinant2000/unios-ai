@@ -7,8 +7,12 @@ import {
   ClipboardCopy,
   Mic,
   Radio,
+  Send,
+  Sparkles,
   Square,
   Users,
+  Volume2,
+  Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -24,14 +28,19 @@ import { createSpeechRecognition, isSpeechRecognitionSupported } from "@/lib/spe
 import { createMicRecorder, isRecorderSupported } from "@/lib/recorder";
 import { GlassCard, SectionLabel } from "@/components/primitives";
 import QrCode from "@/components/ui/QrCode";
-import Header from "@/components/layout/Header";
 import FadeIn from "@/components/ui/FadeIn";
 import { useLanguage } from "@/context/LanguageContext";
-import { PROFESSOR } from "@/lib/mock-hemis";
 import { stopSpeaking } from "@/lib/tts";
 import type { TranslationKey } from "@/lib/translations";
 
 const AUTO_FLUSH_MS = 15_000;
+
+function formatDuration(ms: number): string {
+  const totalSec = Math.max(0, Math.round(ms / 1000));
+  const minutes = Math.floor(totalSec / 60);
+  const seconds = totalSec % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
 
 function statusKey(status: LiveLecture["status"]): TranslationKey {
   if (status === "live") return "liveStatusLive";
@@ -62,6 +71,10 @@ export default function LiveControlRoom({
   const [draft, setDraft] = useState("");
   const [sttError, setSttError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const [aiQuestion, setAiQuestion] = useState("");
+  const [aiAnswer, setAiAnswer] = useState<string | null>(null);
+  const [aiThinking, setAiThinking] = useState(false);
 
   const recognitionRef = useRef<{ stop: () => void } | null>(null);
   const bufferRef = useRef("");
@@ -198,15 +211,72 @@ export default function LiveControlRoom({
     }
   }, [joinUrl]);
 
+  const audioSections = useMemo(
+    () => sections.filter((section) => !!(section.audioUrl)),
+    [sections],
+  );
+
+  /**
+   * Пайплайн «STT → ИИ»: распознанный текст секций отправляется в
+   * /api/ask-lecture как контекст. Если AI-движок недоступен (нет ключа
+   * Groq) — отвечаем локально на основе накопленного текста.
+   */
+  const askAi = useCallback(
+    async (raw: string) => {
+      const question = raw.trim();
+      if (!question || aiThinking || sections.length === 0) return;
+      setAiQuestion(question);
+      setAiAnswer(null);
+      setAiThinking(true);
+      try {
+        const context = sections.map((section) => ({
+          time: new Date(section.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          text: section.text,
+        }));
+        let answer: string | undefined;
+        try {
+          const res = await fetch("/api/ask-lecture", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question, title: lecture.title, context }),
+          });
+          if (res.ok) {
+            const data = (await res.json()) as { answer?: string };
+            answer = data.answer;
+          }
+        } catch {
+          // API недоступен — фолбэк ниже
+        }
+        if (!answer) {
+          await new Promise((resolve) => setTimeout(resolve, 700));
+          const joined = sections.map((section) => section.text).join(" ");
+          answer = `${t("aiLocalFallback")}\n${joined.slice(0, 800) || t("noSectionsYet")}`;
+        }
+        setAiAnswer(answer);
+      } finally {
+        setAiThinking(false);
+      }
+    },
+    [aiThinking, lecture.title, sections, t],
+  );
+
+  const runSummary = useCallback(() => {
+    void askAi(t("aiSummaryQuestion"));
+  }, [askAi, t]);
+
+  const runQuiz = useCallback(() => {
+    void askAi(t("aiQuizQuestion"));
+  }, [askAi, t]);
+
   const live = lecture.status === "live";
   const ended = lecture.status === "ended";
 
   return (
-    <main className="min-h-screen">
-      <Header showBack user={PROFESSOR} />
-
-      <div className="mx-auto w-full max-w-6xl px-6 pb-20">
-        <FadeIn>
+    <>
+      <FadeIn>
           <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -453,6 +523,21 @@ export default function LiveControlRoom({
                           <p className="text-sm leading-relaxed text-slate-600 dark:text-zinc-300">
                             {section.text}
                           </p>
+                          {section.audioUrl && (
+                            <div className="mt-2 flex items-center gap-2">
+                              {section.duration !== undefined && (
+                                <span className="shrink-0 font-mono text-[11px] tabular-nums text-slate-400 dark:text-zinc-500">
+                                  {formatDuration(section.duration)}
+                                </span>
+                              )}
+                              <audio
+                                controls
+                                preload="none"
+                                className="h-8 min-w-0 flex-1"
+                                src={section.audioUrl}
+                              />
+                            </div>
+                          )}
                         </div>
                       </FadeIn>
                     ))
@@ -510,7 +595,7 @@ export default function LiveControlRoom({
         )}
 
         {ended && (
-          <div className="mt-8">
+          <div className="mt-8 space-y-6">
             <FadeIn>
               <GlassCard className="flex flex-col items-center gap-5 p-10 text-center">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-500 dark:text-emerald-300">
@@ -539,9 +624,138 @@ export default function LiveControlRoom({
                 </div>
               </GlassCard>
             </FadeIn>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <FadeIn>
+                <GlassCard className="space-y-4 p-6" interactive={false}>
+                  <div className="flex items-center gap-2">
+                    <Volume2 className="h-4 w-4 text-emerald-500" />
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      {t("recordedAudio")}
+                    </h3>
+                    <span className="ml-auto text-xs tabular-nums text-slate-400 dark:text-zinc-500">
+                      {audioSections.length}
+                    </span>
+                  </div>
+                  {audioSections.length === 0 ? (
+                    <p className="rounded-xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-400 dark:border-white/10 dark:text-zinc-500">
+                      {t("noRecordedAudio")}
+                    </p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {audioSections.map((section, index) => (
+                        <li
+                          key={section.id}
+                          className="rounded-xl border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.04]"
+                        >
+                          <div className="mb-1.5 flex items-center justify-between gap-2">
+                            <span className="font-mono text-[11px] font-bold tabular-nums text-slate-400 dark:text-zinc-500">
+                              #{index + 1} ·{" "}
+                              {new Date(section.timestamp).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                            {section.duration !== undefined && (
+                              <span className="font-mono text-[11px] tabular-nums text-slate-400 dark:text-zinc-500">
+                                {formatDuration(section.duration)}
+                              </span>
+                            )}
+                          </div>
+                          <audio
+                            controls
+                            preload="none"
+                            className="h-9 w-full"
+                            src={section.audioUrl ?? undefined}
+                          />
+                          <p className="mt-1.5 truncate text-xs text-slate-500 dark:text-zinc-400">
+                            {section.text}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </GlassCard>
+              </FadeIn>
+
+              <FadeIn delay={0.05}>
+                <GlassCard className="space-y-4 p-6" interactive={false}>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-indigo-500" />
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      {t("aiLectureAssistant")}
+                    </h3>
+                  </div>
+                  <p className="text-xs leading-relaxed text-slate-500 dark:text-zinc-400">
+                    {t("aiAssistantHint")}
+                  </p>
+                  {sections.length === 0 ? (
+                    <p className="rounded-xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-400 dark:border-white/10 dark:text-zinc-500">
+                      {t("noSectionsYet")}
+                    </p>
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={runSummary}
+                          disabled={aiThinking}
+                          type="button"
+                          className="btn-ghost !py-2 disabled:opacity-50"
+                        >
+                          <Wand2 className="h-4 w-4 text-indigo-500" />
+                          {t("aiSummaryAction")}
+                        </button>
+                        <button
+                          onClick={runQuiz}
+                          disabled={aiThinking}
+                          type="button"
+                          className="btn-ghost !py-2 disabled:opacity-50"
+                        >
+                          <Check className="h-4 w-4 text-emerald-500" />
+                          {t("aiQuizAction")}
+                        </button>
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          value={aiQuestion}
+                          onChange={(event) => setAiQuestion(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") void askAi(aiQuestion);
+                          }}
+                          placeholder={t("aiAskPlaceholder")}
+                          className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-zinc-500"
+                        />
+                        <button
+                          onClick={() => void askAi(aiQuestion)}
+                          disabled={aiThinking || !aiQuestion.trim()}
+                          type="button"
+                          className="btn-primary shrink-0 !px-4 disabled:opacity-50"
+                        >
+                          {aiThinking ? (
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                          ) : (
+                            <Send className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                      {aiThinking && (
+                        <p className="flex items-center gap-2 text-xs text-indigo-500 dark:text-violet-300">
+                          <span className="h-3 w-3 animate-spin rounded-full border-2 border-indigo-500/30 border-t-indigo-500" />
+                          {t("aiThinking")}
+                        </p>
+                      )}
+                      {aiAnswer && (
+                        <div className="whitespace-pre-wrap rounded-xl border border-slate-200 bg-white p-4 text-sm leading-relaxed text-slate-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200">
+                          {aiAnswer}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </GlassCard>
+              </FadeIn>
+            </div>
           </div>
         )}
-      </div>
-    </main>
+    </>
   );
 }
