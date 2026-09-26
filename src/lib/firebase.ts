@@ -198,7 +198,10 @@ export async function getCurrentUserId(): Promise<string> {
     anonymousUserPromise = signInAnonymously(auth)
       .then((cred) => cred.user.uid)
       .catch((err) => {
-        console.error("[firebase] anonymous sign-in failed, using demo id", err);
+        console.warn(
+          "[firebase] anonymous sign-in unavailable, using demo id (check NEXT_PUBLIC_FIREBASE_CONFIG)",
+          err,
+        );
         anonymousUserPromise = null;
         return getDemoUserId();
       });

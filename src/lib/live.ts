@@ -158,6 +158,69 @@ function demoSaveLecture(lecture: LiveLecture) {
 // Публичное API
 // ---------------------------------------------------------------------------
 
+/**
+ * Пытается выполнить Firestore-операцию. Если она отклоняется или не успевает
+ * за timeoutMs (например, невалидный API-ключ в конфиге), деградирует в
+ * demo-ветку, чтобы приложение продолжало работать.
+ */
+async function firestoreOrDemo<T>(
+  op: () => Promise<T>,
+  demo: () => T | Promise<T>,
+  timeoutMs = 2500,
+): Promise<T> {
+  try {
+    return await Promise.race([
+      op().catch((err) => {
+        console.warn("[live] Firestore op failed, falling back to demo backend", err);
+        return demo();
+      }),
+      new Promise<never>((_res, rej) =>
+        setTimeout(() => rej(new Error("firestore timeout")), timeoutMs),
+      ),
+    ]);
+  } catch {
+    return demo();
+  }
+}
+
+/**
+ * Обёртка для onSnapshot с деградацией в demo-режим: если данные не пришли
+ * за timeoutMs или слушатель упал с ошибкой (битый ключ, offline), переключает
+ * подписку на localStorage-demo.
+ */
+function fsOrDemoSubscribe(
+  startFs: (h: { markLive: () => void; fallback: () => void }) => Unsub,
+  subscribeDemo: () => Unsub,
+  timeoutMs = 2500,
+): Unsub {
+  let demoFallback: Unsub | null = null;
+  let fsUnsub: Unsub | null = null;
+  let settled = false;
+  const toDemo = () => {
+    if (settled || demoFallback) return;
+    console.warn("[live] Firestore subscription failed, falling back to demo backend");
+    fsUnsub?.();
+    demoFallback = subscribeDemo();
+  };
+  const timer = setTimeout(toDemo, timeoutMs);
+  const markLive = () => {
+    settled = true;
+    clearTimeout(timer);
+  };
+  try {
+    fsUnsub = startFs({ markLive, fallback: toDemo });
+  } catch (err) {
+    console.warn("[live] Firestore subscription failed, falling back to demo backend", err);
+    toDemo();
+  }
+  return () => {
+    settled = true;
+    clearTimeout(timer);
+    fsUnsub?.();
+    demoFallback?.();
+  };
+}
+
 /** Создаёт лекцию и возвращает её id. */
 export async function createLiveLecture(input: {
   title: string;
@@ -183,8 +246,19 @@ export async function createLiveLecture(input: {
 
   const db = getFirestoreSafe();
   if (db) {
-    await setDoc(doc(db, "lectures", id), lecture);
-    return id;
+    return firestoreOrDemo(
+      async () => {
+        await setDoc(doc(db, "lectures", id), lecture);
+        return id;
+      },
+      async () => {
+        ensureStorageListener();
+        demoSaveLecture(lecture);
+        demoEmit(`lecture:${id}`);
+        demoEmit(`teacher:${teacherId}`);
+        return id;
+      },
+    );
   }
   ensureStorageListener();
   demoSaveLecture(lecture);
@@ -197,8 +271,13 @@ export async function createLiveLecture(input: {
 export async function getLiveLecture(id: string): Promise<LiveLecture | null> {
   const db = getFirestoreSafe();
   if (db) {
-    const snap = await getDoc(doc(db, "lectures", id));
-    return snap.exists() ? (snap.data() as LiveLecture) : null;
+    return firestoreOrDemo(
+      async () => {
+        const snap = await getDoc(doc(db, "lectures", id));
+        return snap.exists() ? (snap.data() as LiveLecture) : null;
+      },
+      () => (isClientSide() ? demoLoadLecture(id) : null),
+    );
   }
   if (!isClientSide()) return null;
   return demoLoadLecture(id);
@@ -211,9 +290,24 @@ export function subscribeLiveLecture(
 ): Unsub {
   const db = getFirestoreSafe();
   if (db) {
-    return onSnapshot(doc(db, "lectures", id), (snap) => {
-      cb(snap.exists() ? (snap.data() as LiveLecture) : null);
-    });
+    return fsOrDemoSubscribe(
+      ({ markLive, fallback }) =>
+        onSnapshot(
+          doc(db, "lectures", id),
+          (snap) => {
+            markLive();
+            cb(snap.exists() ? (snap.data() as LiveLecture) : null);
+          },
+          fallback,
+        ),
+      () => {
+        if (!isClientSide()) return () => {};
+        ensureStorageListener();
+        const off = demoOn(`lecture:${id}`, () => cb(demoLoadLecture(id)));
+        cb(demoLoadLecture(id));
+        return off;
+      },
+    );
   }
   if (!isClientSide()) return () => {};
   ensureStorageListener();
@@ -231,12 +325,23 @@ export async function setLiveLectureStatus(
 ): Promise<void> {
   const db = getFirestoreSafe();
   if (db) {
-    await updateDoc(doc(db, "lectures", id), { status });
-    return;
+    return firestoreOrDemo(
+      async () => {
+        await updateDoc(doc(db, "lectures", id), { status });
+      },
+      async () => {
+        const lecture = demoLoadLecture(id);
+        if (lecture) {
+          const updated = { ...lecture, status };
+          demoSaveLecture(updated);
+          demoEmit(`lecture:${id}`);
+          demoEmit(`teacher:${lecture.teacherId}`);
+        }
+      },
+    );
   }
   const lecture = demoLoadLecture(id);
   if (!lecture) return;
-  demoLoadLecture(id);
   const updated = { ...lecture, status };
   demoSaveLecture(updated);
   demoEmit(`lecture:${id}`);
@@ -250,16 +355,34 @@ export function subscribeSections(
 ): Unsub {
   const db = getFirestoreSafe();
   if (db) {
-    const collectionRef = collection(db, "lectures", lectureId, "sections");
-    const q = query(collectionRef, orderBy("order", "asc"));
-    return onSnapshot(q, (snap) => {
-      cb(
-        snap.docs.map((d) => ({
-          id: d.id,
-          ...(d.data() as Omit<LiveSection, "id">),
-        })),
-      );
-    });
+    return fsOrDemoSubscribe(
+      ({ markLive, fallback }) => {
+        const collectionRef = collection(db, "lectures", lectureId, "sections");
+        const q = query(collectionRef, orderBy("order", "asc"));
+        return onSnapshot(
+          q,
+          (snap) => {
+            markLive();
+            cb(
+              snap.docs.map((d) => ({
+                id: d.id,
+                ...(d.data() as Omit<LiveSection, "id">),
+              })),
+            );
+          },
+          fallback,
+        );
+      },
+      () => {
+        if (!isClientSide()) return () => {};
+        ensureStorageListener();
+        const off = demoOn(`sections:${lectureId}`, () => {
+          cb(lsGet<LiveSection[]>(lsSectionsKey(lectureId), []));
+        });
+        cb(lsGet<LiveSection[]>(lsSectionsKey(lectureId), []));
+        return off;
+      },
+    );
   }
   if (!isClientSide()) return () => {};
   ensureStorageListener();
@@ -287,8 +410,20 @@ export async function addLiveSection(
   };
   const db = getFirestoreSafe();
   if (db) {
-    await addDoc(collection(db, "lectures", lectureId, "sections"), data);
-    return;
+    return firestoreOrDemo(
+      async () => {
+        await addDoc(collection(db, "lectures", lectureId, "sections"), data);
+      },
+      async () => {
+        const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
+        const section: LiveSection = {
+          id: `sec-${now}`,
+          ...data,
+        };
+        lsSet(lsSectionsKey(lectureId), [...sections, section]);
+        demoEmit(`sections:${lectureId}`);
+      },
+    );
   }
   const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
   const section: LiveSection = {
@@ -307,8 +442,19 @@ export async function updateLiveSection(
 ): Promise<void> {
   const db = getFirestoreSafe();
   if (db) {
-    await updateDoc(doc(db, "lectures", lectureId, "sections", sectionId), patch);
-    return;
+    return firestoreOrDemo(
+      async () => {
+        await updateDoc(doc(db, "lectures", lectureId, "sections", sectionId), patch);
+      },
+      async () => {
+        const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
+        const next = sections.map((section) =>
+          section.id === sectionId ? { ...section, ...patch } : section,
+        );
+        lsSet(lsSectionsKey(lectureId), next);
+        demoEmit(`sections:${lectureId}`);
+      },
+    );
   }
   const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
   const next = sections.map((section) =>
@@ -325,8 +471,19 @@ export async function deleteLiveSection(
 ): Promise<void> {
   const db = getFirestoreSafe();
   if (db) {
-    await deleteDoc(doc(db, "lectures", lectureId, "sections", sectionId));
-    return;
+    return firestoreOrDemo(
+      async () => {
+        await deleteDoc(doc(db, "lectures", lectureId, "sections", sectionId));
+      },
+      async () => {
+        const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
+        lsSet(
+          lsSectionsKey(lectureId),
+          sections.filter((section) => section.id !== sectionId),
+        );
+        demoEmit(`sections:${lectureId}`);
+      },
+    );
   }
   const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
   lsSet(
@@ -379,15 +536,33 @@ export function subscribeAttendees(
 ): Unsub {
   const db = getFirestoreSafe();
   if (db) {
-    const attendeesRef = collection(db, "lectures", lectureId, "attendees");
-    return onSnapshot(query(attendeesRef, orderBy("joinedAt", "asc")), (snap) => {
-      cb(
-        snap.docs.map((d) => ({
-          id: d.id,
-          ...(d.data() as Omit<LiveAttendee, "id">),
-        })),
-      );
-    });
+    return fsOrDemoSubscribe(
+      ({ markLive, fallback }) => {
+        const attendeesRef = collection(db, "lectures", lectureId, "attendees");
+        return onSnapshot(
+          query(attendeesRef, orderBy("joinedAt", "asc")),
+          (snap) => {
+            markLive();
+            cb(
+              snap.docs.map((d) => ({
+                id: d.id,
+                ...(d.data() as Omit<LiveAttendee, "id">),
+              })),
+            );
+          },
+          fallback,
+        );
+      },
+      () => {
+        if (!isClientSide()) return () => {};
+        ensureStorageListener();
+        const off = demoOn(`attendees:${lectureId}`, () => {
+          cb(Object.values(lsGet<Record<string, LiveAttendee>>(lsAttendeesKey(lectureId), {})));
+        });
+        cb(Object.values(lsGet<Record<string, LiveAttendee>>(lsAttendeesKey(lectureId), {})));
+        return off;
+      },
+    );
   }
   if (!isClientSide()) return () => {};
   ensureStorageListener();
@@ -406,12 +581,31 @@ export async function joinLiveLecture(
   const studentId = (await getCurrentUserId()) || `guest-${Date.now()}`;
   const db = getFirestoreSafe();
   if (db) {
-    await setDoc(
-      doc(db, "lectures", lectureId, "attendees", studentId),
-      { studentName, joinedAt: Date.now() },
-      { merge: true },
+    return firestoreOrDemo(
+      async () => {
+        await setDoc(
+          doc(db, "lectures", lectureId, "attendees", studentId),
+          { studentName, joinedAt: Date.now() },
+          { merge: true },
+        );
+      },
+      async () => {
+        const attendees = lsGet<Record<string, LiveAttendee>>(lsAttendeesKey(lectureId), {});
+        const existing = attendees[studentId] ?? {
+          listenedSectionsCount: 0,
+          activeMinutes: 0,
+        };
+        attendees[studentId] = {
+          id: studentId,
+          studentName,
+          joinedAt: existing.joinedAt ?? Date.now(),
+          listenedSectionsCount: existing.listenedSectionsCount,
+          activeMinutes: existing.activeMinutes,
+        };
+        lsSet(lsAttendeesKey(lectureId), attendees);
+        demoEmit(`attendees:${lectureId}`);
+      },
     );
-    return;
   }
   const attendees = lsGet<Record<string, LiveAttendee>>(lsAttendeesKey(lectureId), {});
   const existing = attendees[studentId] ?? {
@@ -436,11 +630,25 @@ export async function markSectionListened(
 ): Promise<void> {
   const db = getFirestoreSafe();
   if (db) {
-    await updateDoc(
-      doc(db, "lectures", lectureId, "attendees", studentId),
-      { listenedSectionsCount: increment(1) },
-    ).catch(() => {});
-    return;
+    return firestoreOrDemo(
+      async () => {
+        await updateDoc(
+          doc(db, "lectures", lectureId, "attendees", studentId),
+          { listenedSectionsCount: increment(1) },
+        );
+      },
+      async () => {
+        const attendees = lsGet<Record<string, LiveAttendee>>(lsAttendeesKey(lectureId), {});
+        const attendee = attendees[studentId];
+        if (!attendee) return;
+        attendees[studentId] = {
+          ...attendee,
+          listenedSectionsCount: attendee.listenedSectionsCount + 1,
+        };
+        lsSet(lsAttendeesKey(lectureId), attendees);
+        demoEmit(`attendees:${lectureId}`);
+      },
+    );
   }
   const attendees = lsGet<Record<string, LiveAttendee>>(lsAttendeesKey(lectureId), {});
   const attendee = attendees[studentId];
@@ -461,11 +669,25 @@ export async function addActiveMinutes(
 ): Promise<void> {
   const db = getFirestoreSafe();
   if (db) {
-    await updateDoc(
-      doc(db, "lectures", lectureId, "attendees", studentId),
-      { activeMinutes: increment(minutes) },
-    ).catch(() => {});
-    return;
+    return firestoreOrDemo(
+      async () => {
+        await updateDoc(
+          doc(db, "lectures", lectureId, "attendees", studentId),
+          { activeMinutes: increment(minutes) },
+        );
+      },
+      async () => {
+        const attendees = lsGet<Record<string, LiveAttendee>>(lsAttendeesKey(lectureId), {});
+        const attendee = attendees[studentId];
+        if (!attendee) return;
+        attendees[studentId] = {
+          ...attendee,
+          activeMinutes: attendee.activeMinutes + minutes,
+        };
+        lsSet(lsAttendeesKey(lectureId), attendees);
+        demoEmit(`attendees:${lectureId}`);
+      },
+    );
   }
   const attendees = lsGet<Record<string, LiveAttendee>>(lsAttendeesKey(lectureId), {});
   const attendee = attendees[studentId];
@@ -485,20 +707,38 @@ export function subscribeTeacherLectures(
 ): Unsub {
   const db = getFirestoreSafe();
   if (db) {
-    const collectionRef = collection(db, "lectures");
-    const q = query(
-      collectionRef,
-      where("teacherId", "==", teacherId),
-      orderBy("createdAt", "desc"),
+    return fsOrDemoSubscribe(
+      ({ markLive, fallback }) => {
+        const collectionRef = collection(db, "lectures");
+        const q = query(
+          collectionRef,
+          where("teacherId", "==", teacherId),
+          orderBy("createdAt", "desc"),
+        );
+        return onSnapshot(
+          q,
+          (snap) => {
+            markLive();
+            cb(
+              snap.docs.map((d) => ({
+                id: d.id,
+                ...(d.data() as Omit<LiveLecture, "id">),
+              })),
+            );
+          },
+          fallback,
+        );
+      },
+      () => {
+        if (!isClientSide()) return () => {};
+        ensureStorageListener();
+        const off = demoOn(`teacher:${teacherId}`, () => {
+          cb(loadTeacherLecturesDemo(teacherId));
+        });
+        cb(loadTeacherLecturesDemo(teacherId));
+        return off;
+      },
     );
-    return onSnapshot(q, (snap) => {
-      cb(
-        snap.docs.map((d) => ({
-          id: d.id,
-          ...(d.data() as Omit<LiveLecture, "id">),
-        })),
-      );
-    });
   }
   if (!isClientSide()) return () => {};
   ensureStorageListener();
@@ -522,16 +762,21 @@ function loadTeacherLecturesDemo(teacherId: string): LiveLecture[] {
 export async function listSections(lectureId: string): Promise<LiveSection[]> {
   const db = getFirestoreSafe();
   if (db) {
-    const snap = await getDocs(
-      query(
-        collection(db, "lectures", lectureId, "sections"),
-        orderBy("order", "asc"),
-      ),
+    return firestoreOrDemo(
+      async () => {
+        const snap = await getDocs(
+          query(
+            collection(db, "lectures", lectureId, "sections"),
+            orderBy("order", "asc"),
+          ),
+        );
+        return snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<LiveSection, "id">),
+        }));
+      },
+      () => lsGet<LiveSection[]>(lsSectionsKey(lectureId), []),
     );
-    return snap.docs.map((d) => ({
-      id: d.id,
-      ...(d.data() as Omit<LiveSection, "id">),
-    }));
   }
   return lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
 }
