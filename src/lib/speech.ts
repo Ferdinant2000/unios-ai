@@ -45,8 +45,15 @@ export interface RecognizedSpeech {
 
 export interface SpeechRecognitionHandle {
   supported: boolean;
+  setLang: (lang: string) => void;
   stop: () => void;
 }
+
+export const SPEECH_LANGS = {
+  ru: "ru-RU",
+  uz: "uz-UZ",
+  en: "en-US",
+} as const;
 
 export function createSpeechRecognition(opts: {
   lang?: string;
@@ -61,6 +68,16 @@ export function createSpeechRecognition(opts: {
   rec.lang = opts.lang ?? "ru-RU";
   rec.continuous = true;
   rec.interimResults = true;
+
+  let restarting = false;
+  const safeStart = () => {
+    try {
+      rec.start();
+    } catch {
+      opts.onError?.("not-allowed");
+    }
+  };
+
   rec.onresult = (event) => {
     for (let i = event.resultIndex; i < event.results.length; i += 1) {
       const result = event.results[i];
@@ -72,7 +89,14 @@ export function createSpeechRecognition(opts: {
       }
     }
   };
-  rec.onend = () => opts.onEnd?.();
+  rec.onend = () => {
+    if (restarting) {
+      restarting = false;
+      safeStart();
+      return;
+    }
+    opts.onEnd?.();
+  };
   rec.onerror = (event) => opts.onError?.(event.error);
 
   try {
@@ -84,6 +108,18 @@ export function createSpeechRecognition(opts: {
 
   return {
     supported: true,
+    setLang: (lang: string) => {
+      rec.lang = lang;
+      // Chrome выбирает языковую модель при старте сессии, поэтому плавно
+      // перезапускаем распознаватель (накопленный текст живёт у вызывающего).
+      restarting = true;
+      try {
+        rec.stop();
+      } catch {
+        restarting = false;
+        safeStart();
+      }
+    },
     stop: () => {
       try {
         rec.stop();

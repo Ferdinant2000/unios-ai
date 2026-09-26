@@ -24,7 +24,12 @@ import {
   type LiveLecture,
   type LiveSection,
 } from "@/lib/live";
-import { createSpeechRecognition, isSpeechRecognitionSupported } from "@/lib/speech";
+import {
+  createSpeechRecognition,
+  isSpeechRecognitionSupported,
+  SPEECH_LANGS,
+  type SpeechRecognitionHandle,
+} from "@/lib/speech";
 import { createMicRecorder, isRecorderSupported } from "@/lib/recorder";
 import { GlassCard, SectionLabel } from "@/components/primitives";
 import QrCode from "@/components/ui/QrCode";
@@ -34,6 +39,7 @@ import { stopSpeaking } from "@/lib/tts";
 import type { TranslationKey } from "@/lib/translations";
 
 const AUTO_FLUSH_MS = 15_000;
+const HOST_SPEECH_PREFIX = "[Преподаватель / Ведущий]: ";
 
 function formatDuration(ms: number): string {
   const totalSec = Math.max(0, Math.round(ms / 1000));
@@ -76,7 +82,7 @@ export default function LiveControlRoom({
   const [aiAnswer, setAiAnswer] = useState<string | null>(null);
   const [aiThinking, setAiThinking] = useState(false);
 
-  const recognitionRef = useRef<{ stop: () => void } | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionHandle | null>(null);
   const bufferRef = useRef("");
   const flushTimerRef = useRef<number | null>(null);
   const recorderRef = useRef<{
@@ -84,8 +90,7 @@ export default function LiveControlRoom({
   } | null>(null);
   const recordingActiveRef = useRef(false);
 
-  const speechLang =
-    lang === "uz" ? "uz-UZ" : lang === "en" ? "en-US" : "ru-RU";
+  const speechLang = SPEECH_LANGS[lang] ?? "ru-RU";
 
   useEffect(() => {
     return () => {
@@ -121,6 +126,7 @@ export default function LiveControlRoom({
   const flushBufferWithAudio = useCallback(
     async (restartWindow: boolean) => {
       const text = bufferRef.current.trim();
+      const hostText = text ? `${HOST_SPEECH_PREFIX}${text}` : "";
       const recorder = recorderRef.current;
       let audioUrl: string | null = null;
       let duration: number | undefined;
@@ -134,8 +140,8 @@ export default function LiveControlRoom({
         }
       }
 
-      if (text) {
-        await addLiveSection(lectureId, { text, audioUrl, duration });
+      if (hostText) {
+        await addLiveSection(lectureId, { text: hostText, audioUrl, duration });
       }
 
       bufferRef.current = "";
@@ -160,41 +166,73 @@ export default function LiveControlRoom({
     setRecording(false);
   }, [flushBufferWithAudio]);
 
+  // Запускает распознавание на конкретной локали. Каллбеки стабильны —
+  // накопленный буфер текста (bufferRef/draft) при перезапуске не теряется.
+  const startRecognizer = useCallback(
+    (lang: string) => {
+      setSttError(null);
+      if (!isSpeechRecognitionSupported()) {
+        setSttError(t("sttUnsupported"));
+        return null;
+      }
+      const handle = createSpeechRecognition({
+        lang,
+        onRecognized: (segment) => {
+          if (segment.isFinal && segment.text.trim()) {
+            if (bufferRef.current) bufferRef.current += " ";
+            bufferRef.current += segment.text.trim();
+            setDraft(bufferRef.current);
+          }
+        },
+        onError: (error) => {
+          if (error === "not-allowed" || error === "service-not-allowed") {
+            setSttError(t("micAccessDenied"));
+            recognitionRef.current = null;
+            recordingActiveRef.current = false;
+            setRecording(false);
+          }
+        },
+      });
+      if (!handle) {
+        setSttError(t("sttUnsupported"));
+        return null;
+      }
+      recognitionRef.current = handle;
+      return handle;
+    },
+    [t],
+  );
+
   const startRecognition = useCallback(() => {
-    setSttError(null);
     if (!isSpeechRecognitionSupported()) {
       setSttError(t("sttUnsupported"));
       return;
     }
-    const handle = createSpeechRecognition({
-      lang: speechLang,
-      onRecognized: (segment) => {
-        if (segment.isFinal && segment.text.trim()) {
-          if (bufferRef.current) bufferRef.current += " ";
-          bufferRef.current += segment.text.trim();
-          setDraft(bufferRef.current);
-        }
-      },
-      onError: (error) => {
-        if (error === "not-allowed" || error === "service-not-allowed") {
-          setSttError(t("micAccessDenied"));
-          recognitionRef.current = null;
-          setRecording(false);
-        }
-      },
-    });
-    if (!handle) {
-      setSttError(t("sttUnsupported"));
-      return;
+    const handle = startRecognizer(speechLang);
+    if (!handle && speechLang !== "ru-RU") {
+      // Если браузер не поддерживает выбранную локаль — пробуем русскую
+      startRecognizer("ru-RU");
     }
-    recognitionRef.current = handle;
+    if (!recognitionRef.current) return;
     recordingActiveRef.current = true;
     setRecording(true);
     void startWindowRecorder();
     flushTimerRef.current = window.setInterval(() => {
       void flushBufferWithAudio(true);
     }, AUTO_FLUSH_MS);
-  }, [speechLang, t, flushBufferWithAudio, startWindowRecorder]);
+  }, [speechLang, t, flushBufferWithAudio, startWindowRecorder, startRecognizer]);
+
+  // Смена языка UI во время активной записи: обновляем recognition.lang
+  // (распознаватель мягко перезапускается внутри speech.ts), не теряя
+  // накопленный текст и текущий аудио-сегмент.
+  const prevSpeechLangRef = useRef(speechLang);
+  useEffect(() => {
+    const prev = prevSpeechLangRef.current;
+    prevSpeechLangRef.current = speechLang;
+    if (prev === speechLang) return;
+    if (!recordingActiveRef.current || !recognitionRef.current) return;
+    recognitionRef.current.setLang(speechLang);
+  }, [speechLang]);
 
   const endLesson = useCallback(async () => {
     await stopRecognition();
