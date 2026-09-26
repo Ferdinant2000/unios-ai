@@ -413,11 +413,15 @@ export async function addLiveSection(
     timestamp: now,
     order: now,
   };
+  const section: LiveSection = {
+    id: `sec-${now}`,
+    ...data,
+  };
   const db = getFirestoreSafe();
   if (db) {
     return firestoreOrDemo(
       async () => {
-        await addDoc(collection(db, "lectures", lectureId, "sections"), data);
+        await addDoc(collection(db, "lectures", lectureId, "sections"), section);
       },
       async () => {
         const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
@@ -429,10 +433,6 @@ export async function addLiveSection(
     );
   }
   const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
-  const section: LiveSection = {
-    id: `sec-${now}`,
-    ...data,
-  };
   const next = [...sections, section];
   lsSet(lsSectionsKey(lectureId), next);
   persistLectureData(lectureId, next);
