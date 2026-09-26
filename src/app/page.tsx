@@ -39,6 +39,11 @@ import PricingSection from "@/components/pricing/PricingSection";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/translations";
 
+// Ссылка для QR-кода в HERO (для презентаций). Задаётся через
+// NEXT_PUBLIC_QR_URL на боевом деплое (Vercel), по умолчанию — Firebase.
+const QR_TARGET_URL =
+  process.env.NEXT_PUBLIC_QR_URL || "https://unios-ai.web.app";
+
 const LANDING_FEATURES = [
   { icon: BrainCircuit, titleKey: "featureLectureTitle", textKey: "featureLectureText" },
   { icon: MessageSquareText, titleKey: "featureChatTitle", textKey: "featureChatText" },
@@ -282,7 +287,7 @@ export default function LandingPage() {
           <FadeIn delay={0.2}>
             <div className="mt-8 flex items-center gap-4 rounded-2xl border border-slate-200 bg-white/70 p-3 pr-5 text-left backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
               <QrCode
-                value="https://unios-ai.web.app"
+                value={QR_TARGET_URL}
                 size={104}
                 className="shrink-0 border-4 border-white bg-white shadow-sm"
               />

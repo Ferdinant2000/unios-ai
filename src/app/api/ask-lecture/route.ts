@@ -3,6 +3,14 @@ import { getLectureById } from "@/lib/mock-hemis";
 import { askGroqAboutLecture } from "@/lib/groq";
 
 export async function POST(request: NextRequest) {
+  if (!process.env.GROQ_API_KEY) {
+    console.error("[ask-lecture] GROQ_API_KEY is not configured on the server");
+    return NextResponse.json(
+      { fallback: true, error: "GROQ_API_KEY is not configured on the server" },
+      { status: 500 },
+    );
+  }
+
   const body = await request.json().catch(() => null);
 
   const question =
