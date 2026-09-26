@@ -11,12 +11,20 @@ import { Avatar } from "@/components/primitives";
 import Logo from "@/components/ui/Logo";
 import type { User } from "@/types";
 
+interface HeaderUser {
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  hemisId?: string;
+  hemisConnected?: string;
+}
+
 export default function Header({
   showBack = false,
   user,
 }: {
   showBack?: boolean;
-  user?: User;
+  user?: HeaderUser;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -101,10 +109,10 @@ export default function Header({
 
           {user && (
             <div className="flex shrink-0 items-center gap-2.5 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 sm:pr-4">
-              <Avatar name={user.name} size="sm" />
+              <Avatar name={user.name ?? `${user.firstName} ${user.lastName}`} size="sm" />
               <div className="hidden leading-tight sm:block">
                 <p className="max-w-[140px] truncate text-xs font-bold text-slate-900 dark:text-white">
-                  {user.name}
+                  {user.name ?? `${user.firstName} ${user.lastName}`}
                 </p>
                 <p className="text-[10px] text-slate-500 dark:text-zinc-400">
                   {t("hemisConnected")}

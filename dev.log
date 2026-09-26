@@ -1,0 +1,14 @@
+
+> unios-ai@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1643ms
+ ✓ Compiled /api/ask-lecture in 477ms (97 modules)
+ POST /api/ask-lecture/ 200 in 1928ms
+ ✓ Compiled in 48ms
+[?25h

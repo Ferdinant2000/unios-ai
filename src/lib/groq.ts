@@ -1,24 +1,37 @@
 import Groq from "groq-sdk";
+import { env } from "./env";
 
-// Модель выбирается из списка, доступного ключу GROQ_API_KEY
-// (GET https://api.groq.com/openai/v1/models). llama-3.3-70b-versatile
-// для этого аккаунта недоступен (404 model_not_found); gpt-oss-20b — есть.
-const GROQ_MODEL = "openai/gpt-oss-20b";
-
-export interface LectureContextSegment {
+interface TranscriptSegment {
   time: string;
   text: string;
 }
 
-export async function askGroqAboutLecture(
-  title: string,
-  context: LectureContextSegment[],
-  question: string,
-): Promise<{ answer: string; timestampRef?: string } | null> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) return null;
+interface Lecture {
+  id: string;
+  title: string;
+  transcript: TranscriptSegment[];
+  summary: string[];
+}
 
-  const transcriptContext = context
+let groqClient: Groq | null = null;
+
+function getGroqClient(): Groq {
+  if (groqClient) return groqClient;
+
+  const apiKey = env.GROQ_API_KEY;
+  if (!apiKey) {
+    throw new Error("GROQ_API_KEY is not set");
+  }
+  groqClient = new Groq({ apiKey });
+  return groqClient;
+}
+
+export async function askGroqAboutLecture(
+  lecture: Lecture,
+  question: string,
+): Promise<{ answer: string; timestampRef?: string }> {
+  const groq = getGroqClient();
+  const transcriptContext = lecture.transcript
     .map((seg) => `[${seg.time}] ${seg.text}`)
     .join("\n\n");
 
@@ -43,13 +56,15 @@ export async function askGroqAboutLecture(
 🔗 Связь с другими темами лекции (если есть)
 ❓ Наводящий вопрос для самопроверки
 
-Транскрипция лекции "${title}":
-${transcriptContext}`;
+Транскрипция лекции "${lecture.title}":
+${transcriptContext}
+
+Краткий конспект:
+${lecture.summary.join("\n")}`;
 
   try {
-    const groq = new Groq({ apiKey });
     const completion = await groq.chat.completions.create({
-      model: GROQ_MODEL,
+      model: "openai/gpt-oss-20b",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: question },
@@ -58,16 +73,18 @@ ${transcriptContext}`;
       max_tokens: 1024,
     });
 
-    const answer = completion.choices[0]?.message?.content?.trim();
-    if (!answer) return null;
+    const answer = completion.choices[0]?.message?.content ?? "Не удалось получить ответ от AI.";
 
     const timestampMatch = answer.match(/\[(\d{2}:\d{2})\]/);
-    return {
-      answer,
-      timestampRef: timestampMatch ? timestampMatch[1] : undefined,
-    };
+    const timestampRef = timestampMatch ? timestampMatch[1] : undefined;
+
+    return { answer, timestampRef };
   } catch (error) {
     console.error("Groq API error:", error);
-    return null;
+    const message = error instanceof Error ? error.message : "Неизвестная ошибка";
+    if (message.includes("API key") || message.includes("authentication")) {
+      throw new Error("Неверный API ключ Groq. Проверьте GROQ_API_KEY в переменных окружения.");
+    }
+    throw error;
   }
 }

@@ -12,6 +12,9 @@ import {
   Sparkles,
   Users,
   Wand2,
+  User,
+  UserCheck,
+  UserX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getCourseById } from "@/lib/mock-hemis";
@@ -20,15 +23,20 @@ import Header from "@/components/layout/Header";
 import FadeIn from "@/components/ui/FadeIn";
 import { useLanguage } from "@/context/LanguageContext";
 import { PROFESSOR } from "@/lib/mock-hemis";
-import type { LiveLecture } from "@/lib/live";
-import { subscribeLiveLecture } from "@/lib/live";
-import RequireRole from "@/components/auth/RequireRole";
-import LiveControlRoom from "./LiveControlRoom";
 
 interface FeedEvent {
   id: number;
   text: string;
   time: string;
+}
+
+interface LiveAnalytics {
+  activeStudents: number;
+  engagement: number;
+  questions: number;
+  confusedTopics: { topic: string; percentage: number }[];
+  comprehensionRate: number;
+  energyLevel: number;
 }
 
 function nowTime(): string {
@@ -38,135 +46,75 @@ function nowTime(): string {
   ).padStart(2, "0")}`;
 }
 
-export default function LiveLecturePage() {
-  return (
-    <RequireRole role="professor">
-      <LiveLecturePageClient />
-    </RequireRole>
-  );
+async function fetchAnalytics(courseId: string): Promise<LiveAnalytics> {
+  const res = await fetch(`/api/analytics/live?courseId=${courseId}`);
+  if (!res.ok) throw new Error("Failed to fetch analytics");
+  const data = await res.json();
+  return data.analytics;
 }
 
-function LiveLecturePageClient() {
+async function postAnalyticsAction(
+  courseId: string,
+  action: "join" | "leave" | "question" | "quiz_answer" | "topic_confused",
+  topic?: string
+) {
+  await fetch("/api/analytics/live", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ courseId, action, topic }),
+  });
+}
+
+export default function LiveLecturePageClient() {
   const params = useParams<{ id: string }>();
   const courseId = Array.isArray(params.id) ? params.id[0] : params.id;
   const { t } = useLanguage();
   const course = useMemo(() => getCourseById(courseId), [courseId]);
 
-  const [students, setStudents] = useState(184);
-  const [comprehension, setComprehension] = useState(92);
-  const [energized, setEnergized] = useState(78);
+  const [analytics, setAnalytics] = useState<LiveAnalytics | null>(null);
   const [feed, setFeed] = useState<FeedEvent[]>([]);
   const [generating, setGenerating] = useState(false);
   const [sentQuiz, setSentQuiz] = useState(false);
   const [explained, setExplained] = useState(false);
   const [lastExplainTopic, setLastExplainTopic] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [joinedStudents, setJoinedStudents] = useState<Array<{ id: string; name: string; avatar: string; joinedAt: string }>>([]);
 
   useEffect(() => {
-    setFeed(
-      [
-        t("feed1", { topic: t("topicGradientVanishing") }),
-        t("feed6", { n: 18 }),
-        t("feed7", { topic: "Cross-price elasticity" }),
-      ].map((text, i) => ({ id: i, text, time: nowTime() })),
-    );
-  }, [t]);
-
-  useEffect(() => {
-    let tick = 0;
-    const interval = setInterval(() => {
-      tick += 1;
-      setStudents(
-        (prev) =>
-          Math.max(160, Math.min(210, prev + Math.round(Math.random() * 4 - 2))),
-      );
-      setComprehension((prev) =>
-        Math.max(78, Math.min(99, prev + Math.round(Math.random() * 2 - 1))),
-      );
-      setEnergized((prev) =>
-        Math.max(40, Math.min(100, prev + Math.round(Math.random() * 6 - 3))),
-      );
-
-      if (tick % 3 === 0) {
-        const templates = [t("feed2"), t("feed3"), t("feed4"), t("feed5")];
-        const template = templates[tick % templates.length];
-        const topic =
-          comprehension > 90 ? t("topicBatchSize") : t("topicCrossPrice");
-        const text = template
-          .replace("{topic}", topic)
-          .replace("{dir}", Math.random() > 0.5 ? t("dirUp") : t("dirDown"));
-        setFeed((prev) => [
-          { id: Date.now(), text, time: nowTime() },
-          ...prev.slice(0, 5),
+    async function init() {
+      try {
+        const data = await fetchAnalytics(courseId);
+        setAnalytics(data);
+        setFeed([
+          { id: 1, text: t("feed1", { topic: t("topicGradientVanishing") }), time: nowTime() },
+          { id: 2, text: t("feed6", { n: 18 }), time: nowTime() },
+          { id: 3, text: t("feed7", { topic: "Cross-price elasticity" }), time: nowTime() },
         ]);
+      } catch (error) {
+        console.error("Failed to load analytics:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    init();
+  }, [courseId, t]);
+
+  useEffect(() => {
+    if (!analytics) return;
+    
+    const interval = setInterval(async () => {
+      try {
+        const data = await fetchAnalytics(courseId);
+        setAnalytics(data);
+      } catch (error) {
+        console.error("Failed to poll analytics:", error);
       }
     }, 3000);
+
     return () => clearInterval(interval);
-  }, [comprehension, t]);
-
-  const [liveLecture, setLiveLecture] = useState<LiveLecture | null>(null);
-  const [liveLoaded, setLiveLoaded] = useState(false);
-
-  useEffect(() => {
-    setLiveLoaded(false);
-    const off = subscribeLiveLecture(courseId, (lecture) => {
-      setLiveLecture(lecture);
-      setLiveLoaded(true);
-    });
-    return off;
-  }, [courseId]);
-
-  const ringRadius = 62;
-  const circumference = 2 * Math.PI * ringRadius;
-  const comprehensionOffset = circumference * (1 - comprehension / 100);
-
-  const currentTopic =
-    comprehension > 90 ? t("topicBatchSize") : t("topicCrossPrice");
-
-  const handleGenerateExplanation = useCallback(() => {
-    if (generating) return;
-    setGenerating(true);
-    setExplained(false);
-    setLastExplainTopic(null);
-    setTimeout(() => {
-      setGenerating(false);
-      setExplained(true);
-      setLastExplainTopic(currentTopic);
-      setFeed((prev) => [
-        { id: Date.now(), text: t("feed9", { topic: currentTopic }), time: nowTime() },
-        ...prev.slice(0, 5),
-      ]);
-    }, 2000);
-  }, [generating, currentTopic, t]);
-
-  const handleSendQuiz = useCallback(() => {
-    setSentQuiz(true);
-    setFeed((prev) => [
-      {
-        id: Date.now(),
-        text: t("feed8", { n: 5, m: 2 }),
-        time: nowTime(),
-      },
-      ...prev.slice(0, 5),
-    ]);
-    setTimeout(() => setSentQuiz(false), 4000);
-  }, [t]);
-
-  if (!liveLoaded) {
-    return (
-      <main className="min-h-screen">
-        <Header showBack user={PROFESSOR} />
-        <div className="flex min-h-[60vh] items-center justify-center px-6">
-          <div className="glass p-8 text-center text-sm text-slate-400 dark:text-zinc-500">
-            {t("loading")}
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (liveLecture) {
-    return <LiveControlRoom lectureId={courseId} lecture={liveLecture} />;
-  }
+  }, [courseId, analytics]);
 
   if (!course) {
     return (
@@ -186,11 +134,137 @@ function LiveLecturePageClient() {
     );
   }
 
-  const topics = [
-    { name: t("topicCrossPrice"), meta: t("wrongAnswers") },
-    { name: t("topicGradientVanishing"), meta: t("repeats") },
-    { name: t("topicBatchSize"), meta: t("repeats") },
-  ];
+  if (loading) {
+    return (
+      <main className="min-h-screen">
+        <Header showBack user={PROFESSOR} />
+        <div className="flex min-h-[60vh] items-center justify-center px-6">
+          <div className="glass p-8 text-center">
+            <RefreshCw className="h-8 w-8 mx-auto animate-spin text-indigo-500 mb-4" />
+            <p className="text-slate-500 dark:text-zinc-400">Loading live analytics...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!analytics) {
+    return (
+      <main className="min-h-screen">
+        <Header showBack user={PROFESSOR} />
+        <div className="flex min-h-[60vh] items-center justify-center px-6">
+          <div className="glass p-8 text-center">
+            <p className="font-bold text-slate-900 dark:text-white">
+              Failed to load analytics
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  const activeStudentsCount = analytics.activeStudents;
+  const comprehension = analytics.comprehensionRate;
+  const energized = analytics.energyLevel;
+
+  const ringRadius = 62;
+  const circumference = 2 * Math.PI * ringRadius;
+  const comprehensionOffset = circumference * (1 - comprehension / 100);
+
+  const currentTopic =
+    comprehension > 90 ? t("topicBatchSize") : t("topicCrossPrice");
+
+  const topics = analytics.confusedTopics.map((ct, index) => ({
+    name: ct.topic,
+    percentage: ct.percentage,
+    meta: index === 0 ? t("wrongAnswers") : t("repeats"),
+  }));
+
+  async function fetchStudents() {
+    if (!sessionId) return;
+    try {
+      const res = await fetch("/api/lecture-sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get_students", sessionId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setJoinedStudents(data.students || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch students:", error);
+    }
+  }
+
+  const handleStartLecture = useCallback(async () => {
+    try {
+      const res = await fetch("/api/lecture-sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "start",
+          lectureId: "lec-eco-elasticity",
+          professorId: "teacher-1",
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSessionId(data.session.sessionId);
+        setFeed((prev) => [
+          { id: Date.now(), text: "Lecture started. Students can now join.", time: nowTime() },
+          ...prev.slice(0, 5),
+        ]);
+        // Start polling for students
+        const interval = setInterval(fetchStudents, 2000);
+        return () => clearInterval(interval);
+      }
+    } catch (error) {
+      console.error("Failed to start lecture:", error);
+    }
+  }, []);
+
+  const handleGenerateExplanation = useCallback(async () => {
+    if (generating) return;
+    setGenerating(true);
+    setExplained(false);
+    setLastExplainTopic(null);
+    
+    // Call AI explain API
+    try {
+      await fetch("/api/ai/explain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lectureId: "lec-eco-elasticity", topic: currentTopic }),
+      });
+    } catch (error) {
+      console.error("Failed to generate explanation:", error);
+    }
+    
+    setTimeout(() => {
+      setGenerating(false);
+      setExplained(true);
+      setLastExplainTopic(currentTopic);
+      setFeed((prev) => [
+        { id: Date.now(), text: t("feed9", { topic: currentTopic }), time: nowTime() },
+        ...prev.slice(0, 5),
+      ]);
+    }, 2000);
+  }, [generating, currentTopic, t]);
+
+  const handleSendQuiz = useCallback(async () => {
+    setSentQuiz(true);
+    setFeed((prev) => [
+      {
+        id: Date.now(),
+        text: t("feed8", { n: 5, m: 2 }),
+        time: nowTime(),
+      },
+      ...prev.slice(0, 5),
+    ]);
+    await postAnalyticsAction(courseId, "quiz_answer");
+    setTimeout(() => setSentQuiz(false), 4000);
+  }, [t, courseId]);
 
   const integrationRows = [
     { label: t("recordLabel"), status: t("statusUploading"), tone: "text-slate-400 dark:text-zinc-400" },
@@ -198,6 +272,15 @@ function LiveLecturePageClient() {
     { label: t("aiNotes"), status: t("statusUpdated"), tone: "text-emerald-500 dark:text-emerald-300" },
     { label: t("quizResults"), status: t("statusEndOfClass"), tone: "text-slate-400 dark:text-zinc-300" },
   ];
+
+  interface CourseWithTitle {
+  id: string;
+  title: string;
+  code: string;
+  professorName: string;
+}
+
+  const typedCourse = course as unknown as CourseWithTitle;
 
   return (
     <main className="min-h-screen">
@@ -212,7 +295,7 @@ function LiveLecturePageClient() {
                   <span className="absolute inline-flex h-full w-full rounded-full bg-rose-400 animate-live-ping" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-400" />
                 </span>
-                {t("liveTag", { title: course.title })}
+                {t("liveTag", { title: typedCourse.title })}
               </span>
               <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-300">
                 <RefreshCw className="h-3 w-3 animate-spin" />
@@ -221,7 +304,7 @@ function LiveLecturePageClient() {
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 dark:text-zinc-400">
               <Activity className="h-4 w-4 text-emerald-500" />
-              {t("audienceInfo", { n: students > 185 ? 8 : 2 })}
+              {t("audienceInfo", { n: activeStudentsCount > 185 ? 8 : 2 })}
             </div>
           </div>
         </FadeIn>
@@ -234,7 +317,7 @@ function LiveLecturePageClient() {
               </div>
               <div>
                 <p className="text-2xl font-extrabold tabular-nums text-slate-900 dark:text-white">
-                  {students}
+                  {activeStudentsCount}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-zinc-400">
                   {t("studentsOnline")}
@@ -243,7 +326,7 @@ function LiveLecturePageClient() {
             </div>
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-500 dark:text-emerald-300">
               <Activity className="h-4 w-4" />
-              {t("audienceInfo", { n: students > 185 ? 8 : 2 })}
+              {t("audienceInfo", { n: activeStudentsCount > 185 ? 8 : 2 })}
             </div>
           </div>
         </FadeIn>
@@ -345,9 +428,22 @@ function LiveLecturePageClient() {
                         >
                           {index + 1}
                         </span>
-                        <span className="text-sm text-slate-600 dark:text-zinc-200">
-                          {topic.name}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-sm text-slate-600 dark:text-zinc-200">
+                            {topic.name}
+                          </span>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <div className="flex-1 h-1.5 bg-slate-200 rounded-full dark:bg-white/10 overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-rose-500 to-amber-500 rounded-full transition-all duration-700"
+                                style={{ width: `${topic.percentage}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 w-10 text-right">
+                              {topic.percentage}%
+                            </span>
+                          </div>
+                        </div>
                       </div>
                       <span className="text-[11px] text-slate-400 dark:text-zinc-500">
                         {topic.meta}
@@ -396,18 +492,36 @@ function LiveLecturePageClient() {
                   </h3>
                 </div>
 
-                <button
-                  onClick={handleGenerateExplanation}
-                  disabled={generating}
-                  className="btn-primary w-full disabled:opacity-60"
-                >
-                  {generating ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Wand2 className="h-4 w-4" />
-                  )}
-                  {t("generateExplanation")}
-                </button>
+                {!sessionId ? (
+                  <button
+                    onClick={handleStartLecture}
+                    className="btn-primary w-full"
+                  >
+                    <Users className="h-4 w-4" />
+                    {t("startLecture")}
+                  </button>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-2 rounded-xl">
+                      <UserCheck className="h-3 w-3" />
+                      <span>{t("lectureLive")}</span>
+                      <span className="ml-auto font-mono">{joinedStudents.length} {t("studentsInRoom")}</span>
+                    </div>
+
+                    <button
+                      onClick={handleGenerateExplanation}
+                      disabled={generating}
+                      className="btn-primary w-full disabled:opacity-60"
+                    >
+                      {generating ? (
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Wand2 className="h-4 w-4" />
+                      )}
+                      {t("generateExplanation")}
+                    </button>
+                  </>
+                )}
 
                 {explained && (
                   <p className="animate-fade-up flex items-start gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-xs text-emerald-600 dark:text-emerald-200">
@@ -443,6 +557,53 @@ function LiveLecturePageClient() {
                 </p>
               </GlassCard>
             </FadeIn>
+
+            {/* Class Room - Students in session */}
+            {sessionId && (
+              <FadeIn delay={0.1}>
+                <GlassCard className="space-y-3 p-5" interactive={false}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <UserCheck className="h-4 w-4 text-emerald-500" />
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                        {t("classRoom")}
+                      </h3>
+                    </div>
+                    <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                      {joinedStudents.length}
+                    </span>
+                  </div>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {joinedStudents.length > 0 ? (
+                      joinedStudents.map((student) => (
+                        <div
+                          key={student.id}
+                          className="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-white/5"
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xs font-bold">
+                            {student.avatar}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
+                              {student.name}
+                            </p>
+                            <p className="text-[10px] text-slate-500 dark:text-zinc-400">
+                              Joined: {new Date(student.joinedAt).toLocaleTimeString()}
+                            </p>
+                          </div>
+                          <UserCheck className="h-4 w-4 text-emerald-500" />
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4 text-slate-500 dark:text-zinc-400">
+                        <UserX className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">{t("noStudentsYet")}</p>
+                      </div>
+                    )}
+                  </div>
+                </GlassCard>
+              </FadeIn>
+            )}
 
             <FadeIn delay={0.05}>
               <GlassCard interactive={false}>

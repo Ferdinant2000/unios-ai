@@ -1,26 +1,44 @@
 import type {
   User,
   Course,
-  Lecture,
-  TranscriptSegment,
-  ClassroomAnalytics,
 } from "@/types";
 
-export const STUDENT: User = {
+interface TranscriptSegment {
+  time: string;
+  text: string;
+}
+
+interface Lecture {
+  id: string;
+  courseId: string;
+  title: string;
+  date: string;
+  audioUrl: string;
+  transcript: TranscriptSegment[];
+  summary: string[];
+}
+
+interface ClassroomAnalytics {
+  connectedStudents: number;
+  comprehensionRate: number;
+  confusedTopics: string[];
+}
+
+export const STUDENT = {
   role: "student",
   name: "Фирдавсбек Комолитдинов",
   hemisId: "HEMIS-2024-00451",
   avatar: "ФК",
 };
 
-export const PROFESSOR: User = {
+export const PROFESSOR = {
   role: "professor",
   name: "Акмал Рахимов",
   hemisId: "HEMIS-TC-1102",
   avatar: "АР",
 };
 
-export const COURSES: Course[] = [
+export const COURSES = [
   {
     id: "c1",
     title: "Искусственный Интеллект",
@@ -150,15 +168,15 @@ export const CLASSROOM_ANALYTICS: ClassroomAnalytics = {
   confusedTopics: ["Cross-price elasticity", "Затухание градиента", "Batch size"],
 };
 
-export function getCourseById(id: string): Course | undefined {
+export function getCourseById(id: string) {
   return COURSES.find((course) => course.id === id);
 }
 
-export function getLectureById(id: string): Lecture | undefined {
+export function getLectureById(id: string) {
   return LECTURES.find((lecture) => lecture.id === id);
 }
 
-export function getLecturesByCourse(courseId: string): Lecture[] {
+export function getLecturesByCourse(courseId: string) {
   return LECTURES.filter((lecture) => lecture.courseId === courseId);
 }
 
@@ -254,6 +272,14 @@ export function findBestTranscriptMatch(
   return best?.segment ?? lecture.transcript[0];
 }
 
+export function buildSectionAnswer(
+  section: { topic: string; transcript: string },
+  question: string,
+): { answer: string; timestampRef?: string } {
+  const answer = `Based on the "${section.topic}" section: ${section.transcript.slice(0, 200)}...`;
+  return { answer, timestampRef: "00:00" };
+}
+
 export function buildLectureAnswer(
   lecture: Lecture,
   question: string,
@@ -268,43 +294,4 @@ export function buildLectureAnswer(
     `Если нужны детали по другому фрагменту лекции — уточни таймкод или тему.`;
 
   return { answer, timestampRef: match.time };
-}
-
-interface AnswerableSection {
-  text: string;
-  timestamp: number;
-}
-
-export function buildSectionAnswer(
-  sections: AnswerableSection[],
-  question: string,
-): { answer: string; timestampRef: string } {
-  const sorted = [...sections].sort((a, b) => a.timestamp - b.timestamp);
-  if (sorted.length === 0) {
-    return {
-      answer:
-        "Секции лекции пока недоступны — задайте вопрос позже, когда появятся записи распознанной речи.",
-      timestampRef: "",
-    };
-  }
-  const queryWords = tokenize(question);
-  let best = sorted[sorted.length - 1];
-  let bestScore = -1;
-  for (const section of sorted) {
-    const sectionWords = new Set(tokenize(section.text));
-    const score = queryWords.reduce(
-      (acc, word) => acc + (sectionWords.has(word) ? 1 : 0),
-      0,
-    );
-    if (score > bestScore) {
-      bestScore = score;
-      best = section;
-    }
-  }
-  const time = formatTime(Math.floor(best.timestamp / 1000));
-  const firstChar = best.text.charAt(0).toLowerCase() + best.text.slice(1);
-  return {
-    answer: `На ${time} профессор объяснил, что ${firstChar} Если нужны детали по другому фрагменту лекции — уточни таймкод или тему.`,
-    timestampRef: time,
-  };
 }

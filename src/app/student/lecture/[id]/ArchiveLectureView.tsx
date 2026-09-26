@@ -407,7 +407,7 @@ export default function ArchiveLectureView({
             setTimeout(resolve, 700 + Math.random() * 900),
           );
           if (activeLecture?.status === "ended" || localArchive) {
-            const mock = buildSectionAnswer(allSections, question);
+            const mock = buildSectionAnswer({ topic: "Lecture", transcript: allSections.map(s => s.text).join("\n") }, question);
             answer = mock.answer;
             timestampRef = mock.timestampRef;
           } else {
