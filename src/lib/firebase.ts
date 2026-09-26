@@ -161,7 +161,14 @@ export async function signInWithGoogle(): Promise<AppUser | null> {
     const credential = await signInWithPopup(auth, provider);
     return await ensureUserDoc(credential.user);
   } catch (err) {
-    console.error("[firebase] Google sign-in failed", err);
+    const code =
+      typeof err === "object" && err !== null && "code" in err
+        ? String((err as { code?: unknown }).code ?? "")
+        : "";
+    console.error(
+      `[firebase] Google sign-in failed${code ? ` (${code})` : ""}`,
+      err,
+    );
     return null;
   }
 }

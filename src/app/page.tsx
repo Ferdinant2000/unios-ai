@@ -36,6 +36,8 @@ import Header from "@/components/layout/Header";
 import FadeIn from "@/components/ui/FadeIn";
 import QrCode from "@/components/ui/QrCode";
 import PricingSection from "@/components/pricing/PricingSection";
+import TeamSection from "@/components/team/TeamSection";
+import Footer from "@/components/layout/Footer";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/translations";
 
@@ -515,6 +517,9 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* 08 · BIZNING JAMOA */}
+        <TeamSection className="py-12 md:py-16" />
+
         {/* CTA */}
         <section className="py-10 md:py-16">
           <FadeIn>
@@ -540,10 +545,9 @@ export default function LandingPage() {
           </FadeIn>
         </section>
 
-        <footer className="border-t border-slate-200 dark:border-white/5 py-8 text-center text-xs text-slate-400 dark:text-zinc-500">
-          {t("footerCredit")}
-        </footer>
       </div>
+
+      <Footer />
     </main>
   );
 }

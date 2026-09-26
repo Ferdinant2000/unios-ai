@@ -16,6 +16,7 @@ import { useAuth } from "@/context/AuthContext";
 import { isLiveConfigured } from "@/lib/firebase";
 import { useAuthStore } from "@/stores/authStore";
 import type { Role, User } from "@/types";
+import Header from "@/components/layout/Header";
 
 interface GoogleLogoProps {
   className?: string;
@@ -92,7 +93,16 @@ export default function LoginPage() {
     try {
       const appUser = await signInWithGoogle();
       if (!appUser) {
-        setGoogleError(t("googleSignInError"));
+        // Google Auth недоступен (невалидный API-ключ, блокировка всплывающих
+        // окон) — автоматический fallback на демо-вход без блокировки UI.
+        const demoEmail = demoCredentials[role].email;
+        const demoPass = demoCredentials[role].password;
+        const ok = await login(demoEmail, demoPass);
+        if (ok) {
+          router.push(role === "professor" ? "/professor" : "/student");
+        } else {
+          setGoogleError(t("googleFallbackDemo"));
+        }
         return;
       }
       const bridgedRole: Role = appUser.role === "professor" ? "teacher" : "student";
@@ -119,7 +129,9 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-12">
+    <>
+      <Header />
+      <main className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 mb-6">
@@ -293,5 +305,6 @@ export default function LoginPage() {
         </p>
       </div>
     </main>
+    </>
   );
 }

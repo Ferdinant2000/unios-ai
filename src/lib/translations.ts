@@ -27,6 +27,29 @@ const ru = {
     "Live-виджет понимания аудитории: какие концепты вызвали трудность у студентов — прямо в HEMIS.",
   footerCredit: "UniOS AI · HEMIS · Next.js 14 + Tailwind",
 
+  // Team
+  teamTag: "Команда",
+  teamTitle: "НАША КОМАНДА",
+  teamSubtitle: "Инженеры, дизайнеры и аналитики, которые создают ИИ-слой над HEMIS.",
+  teamRoleDeveloper: "Разработчик",
+  teamRoleAnalyst: "Бизнес-аналитик",
+  teamRoleCeo: "CEO",
+  teamRoleDesigner: "Дизайнер",
+  teamRoleCto: "CTO",
+  teamContactTitle: "Контакты",
+
+  // Footer
+  footerTagline: "ИИ-слой над HEMIS: понятные лекции, аналитика в реальном времени и персональный помощник.",
+  footerNavTitle: "Меню",
+  footerServices: "Сервисы",
+  footerSubscriptions: "Тарифы",
+  footerTeam: "Команда",
+  footerLogin: "Вход",
+  footerRights: "© 2026 UniOS AI. Все права защищены.",
+
+  // Google Auth fallback
+  googleFallbackDemo: "Ошибка входа через Google — выполнен демо-вход",
+
   // Presentation — UniOS concept
   pzProblemTag: "01 · MUAMMO",
   pzProblemHeading: "Сегодня обучение разбито на несколько систем и ручных процессов.",
@@ -523,6 +546,29 @@ const uz: Record<TranslationKey, string> = {
     "Auditoriya tushunishini jonli ko'rsatkich: talabalarga qaysi mavzular qiyin bo'lgani — to'g'ridan-to'g'ri HEMISda.",
   footerCredit: "UniOS AI · HEMIS · Next.js 14 + Tailwind",
 
+  // Team
+  teamTag: "Jamoa",
+  teamTitle: "BIZNING JAMOA",
+  teamSubtitle: "HEMIS ustiga AI qatlamini qurayotgan muhandislar, dizaynerlar va analitiklar.",
+  teamRoleDeveloper: "Dasturchi",
+  teamRoleAnalyst: "Biznes-analitik",
+  teamRoleCeo: "CEO",
+  teamRoleDesigner: "Dizayner",
+  teamRoleCto: "CTO",
+  teamContactTitle: "Bog'lanish",
+
+  // Footer
+  footerTagline: "HEMIS ustidagi AI qatlam: tushunarli maʼruzalar, real vaqt tahlili va shaxsiy yordamchi.",
+  footerNavTitle: "Menyu",
+  footerServices: "Xizmatlar",
+  footerSubscriptions: "Obunalar",
+  footerTeam: "Jamoa",
+  footerLogin: "Kirish",
+  footerRights: "© 2026 UniOS AI. Barcha huquqlar himoyalangan.",
+
+  // Google Auth fallback
+  googleFallbackDemo: "Google orqali kirishda xatolik yuz berdi — demo hisob bilan kirdik",
+
   pzProblemTag: "01 · MUAMMO",
   pzProblemHeading: "Bugungi ta'lim bir nechta tizim va qo'lda bajariladigan jarayonlarga bo'linib ketgan.",
   pzProblemTagline: "Professor + Talaba + Universitet → Yagona intellektual ekotizim",
@@ -1009,6 +1055,29 @@ const en: Record<TranslationKey, string> = {
   featureAnalyticsText:
     "A live comprehension widget: which concepts confused your students — right inside HEMIS.",
   footerCredit: "UniOS AI · HEMIS · Next.js 14 + Tailwind",
+
+  // Team
+  teamTag: "Team",
+  teamTitle: "OUR TEAM",
+  teamSubtitle: "The engineers, designers and analysts building the AI layer over HEMIS.",
+  teamRoleDeveloper: "Developer",
+  teamRoleAnalyst: "Business Analyst",
+  teamRoleCeo: "CEO",
+  teamRoleDesigner: "Designer",
+  teamRoleCto: "CTO",
+  teamContactTitle: "Contact",
+
+  // Footer
+  footerTagline: "The AI layer over HEMIS: clearer lectures, live analytics and a personal assistant.",
+  footerNavTitle: "Menu",
+  footerServices: "Services",
+  footerSubscriptions: "Pricing",
+  footerTeam: "Team",
+  footerLogin: "Login",
+  footerRights: "© 2026 UniOS AI. All rights reserved.",
+
+  // Google Auth fallback
+  googleFallbackDemo: "Google sign-in failed — signed in with the demo account",
 
   pzProblemTag: "01 · PROBLEM",
   pzProblemHeading: "Today's education is split across several systems and manual processes.",
