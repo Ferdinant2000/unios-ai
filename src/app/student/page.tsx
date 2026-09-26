@@ -12,6 +12,7 @@ import {
   GraduationCap,
   Library,
   MessageSquareText,
+  RefreshCw,
   ShieldCheck,
   TrendingUp,
   AlertCircle,
@@ -86,8 +87,10 @@ export default function StudentDashboard() {
   ];
   const statValues = [
     String(COURSES.length),
-    analytics ? String(analytics.lectureCompletion.filter(l => l.completed).length) : "0",
-    analytics ? `${Math.round(analytics.quizPerformance.reduce((sum, q) => sum + q.score, 0) / analytics.quizPerformance.length)}%` : "0%",
+    analytics?.lectureCompletion ? String(analytics.lectureCompletion.filter(l => l.completed).length) : "0",
+    analytics?.quizPerformance?.length
+      ? `${Math.round(analytics.quizPerformance.reduce((sum, q) => sum + q.score, 0) / analytics.quizPerformance.length)}%`
+      : "0%",
     "14",
   ];
 
@@ -107,8 +110,40 @@ export default function StudentDashboard() {
     }
   };
 
+  if (loading) {
+    return (
+      <main className="min-h-screen">
+        <Header />
+        <div className="flex min-h-[60vh] items-center justify-center px-6">
+          <div className="glass p-8 text-center">
+            <RefreshCw className="h-8 w-8 mx-auto animate-spin text-indigo-500 mb-4" />
+            <p className="text-slate-500 dark:text-zinc-400">Loading…</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   if (!isAuthenticated || !student) {
-    return null;
+    return (
+      <main className="min-h-screen">
+        <Header />
+        <div className="flex min-h-[60vh] items-center justify-center px-6">
+          <div className="glass p-8 text-center">
+            <p className="text-2xl font-extrabold text-slate-900 dark:text-white">
+              {t("loginRequiredTitle")}
+            </p>
+            <p className="mt-2 text-sm text-slate-500 dark:text-zinc-400">
+              {t("studentAccessText")}
+            </p>
+            <Link href="/login" className="btn-primary mt-6 inline-flex items-center gap-2">
+              {t("goToLogin")}
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -151,7 +186,7 @@ export default function StudentDashboard() {
         </section>
 
         {/* AI Recommendations */}
-        {analytics && analytics.recommendations.length > 0 && (
+        {analytics?.recommendations && analytics.recommendations.length > 0 && (
           <section>
             <FadeIn>
               <div className="mb-4 flex items-center justify-between">
@@ -377,7 +412,7 @@ export default function StudentDashboard() {
             </div>
 
             {/* Quiz Performance Details */}
-            {analytics && analytics.quizPerformance.length > 0 && (
+            {analytics?.quizPerformance && analytics.quizPerformance.length > 0 && (
               <div>
                 <FadeIn>
                   <SectionLabel icon={<CheckCircle2 className="h-3.5 w-3.5" />}>
@@ -410,7 +445,7 @@ export default function StudentDashboard() {
             )}
 
             {/* Upcoming Lectures */}
-            {analytics && analytics.upcomingLectures.length > 0 && (
+            {analytics?.upcomingLectures && analytics.upcomingLectures.length > 0 && (
               <div>
                 <FadeIn>
                   <SectionLabel icon={<Clock className="h-3.5 w-3.5" />}>
@@ -441,7 +476,7 @@ export default function StudentDashboard() {
             )}
 
             {/* Recent Activity */}
-            {analytics && analytics.recentActivity.length > 0 && (
+            {analytics?.recentActivity && analytics.recentActivity.length > 0 && (
               <div>
                 <FadeIn>
                   <SectionLabel icon={<MessageSquareText className="h-3.5 w-3.5" />}>

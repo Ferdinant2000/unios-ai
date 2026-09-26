@@ -116,6 +116,98 @@ export default function LiveLecturePageClient() {
     return () => clearInterval(interval);
   }, [courseId, analytics]);
 
+  const currentTopic = analytics
+    ? analytics.comprehensionRate > 90
+      ? t("topicBatchSize")
+      : t("topicCrossPrice")
+    : "";
+
+  async function fetchStudents() {
+    if (!sessionId) return;
+    try {
+      const res = await fetch("/api/lecture-sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get_students", sessionId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setJoinedStudents(data.students || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch students:", error);
+    }
+  }
+
+  const handleStartLecture = useCallback(async () => {
+    try {
+      const res = await fetch("/api/lecture-sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "start",
+          lectureId: "lec-eco-elasticity",
+          professorId: "teacher-1",
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSessionId(data.session.sessionId);
+        setFeed((prev) => [
+          { id: Date.now(), text: "Lecture started. Students can now join.", time: nowTime() },
+          ...prev.slice(0, 5),
+        ]);
+        // Start polling for students
+        const interval = setInterval(fetchStudents, 2000);
+        return () => clearInterval(interval);
+      }
+    } catch (error) {
+      console.error("Failed to start lecture:", error);
+    }
+  }, []);
+
+  const handleGenerateExplanation = useCallback(async () => {
+    if (generating) return;
+    setGenerating(true);
+    setExplained(false);
+    setLastExplainTopic(null);
+
+    // Call AI explain API
+    try {
+      await fetch("/api/ai/explain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lectureId: "lec-eco-elasticity", topic: currentTopic }),
+      });
+    } catch (error) {
+      console.error("Failed to generate explanation:", error);
+    }
+
+    setTimeout(() => {
+      setGenerating(false);
+      setExplained(true);
+      setLastExplainTopic(currentTopic);
+      setFeed((prev) => [
+        { id: Date.now(), text: t("feed9", { topic: currentTopic }), time: nowTime() },
+        ...prev.slice(0, 5),
+      ]);
+    }, 2000);
+  }, [generating, currentTopic, t]);
+
+  const handleSendQuiz = useCallback(async () => {
+    setSentQuiz(true);
+    setFeed((prev) => [
+      {
+        id: Date.now(),
+        text: t("feed8", { n: 5, m: 2 }),
+        time: nowTime(),
+      },
+      ...prev.slice(0, 5),
+    ]);
+    await postAnalyticsAction(courseId, "quiz_answer");
+    setTimeout(() => setSentQuiz(false), 4000);
+  }, [t, courseId]);
+
   if (!course) {
     return (
       <main className="min-h-screen">
@@ -171,100 +263,18 @@ export default function LiveLecturePageClient() {
   const circumference = 2 * Math.PI * ringRadius;
   const comprehensionOffset = circumference * (1 - comprehension / 100);
 
-  const currentTopic =
-    comprehension > 90 ? t("topicBatchSize") : t("topicCrossPrice");
-
   const topics = analytics.confusedTopics.map((ct, index) => ({
     name: ct.topic,
     percentage: ct.percentage,
     meta: index === 0 ? t("wrongAnswers") : t("repeats"),
   }));
 
-  async function fetchStudents() {
-    if (!sessionId) return;
-    try {
-      const res = await fetch("/api/lecture-sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "get_students", sessionId }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setJoinedStudents(data.students || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch students:", error);
-    }
-  }
-
-  const handleStartLecture = useCallback(async () => {
-    try {
-      const res = await fetch("/api/lecture-sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "start",
-          lectureId: "lec-eco-elasticity",
-          professorId: "teacher-1",
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSessionId(data.session.sessionId);
-        setFeed((prev) => [
-          { id: Date.now(), text: "Lecture started. Students can now join.", time: nowTime() },
-          ...prev.slice(0, 5),
-        ]);
-        // Start polling for students
-        const interval = setInterval(fetchStudents, 2000);
-        return () => clearInterval(interval);
-      }
-    } catch (error) {
-      console.error("Failed to start lecture:", error);
-    }
-  }, []);
-
-  const handleGenerateExplanation = useCallback(async () => {
-    if (generating) return;
-    setGenerating(true);
-    setExplained(false);
-    setLastExplainTopic(null);
-    
-    // Call AI explain API
-    try {
-      await fetch("/api/ai/explain", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lectureId: "lec-eco-elasticity", topic: currentTopic }),
-      });
-    } catch (error) {
-      console.error("Failed to generate explanation:", error);
-    }
-    
-    setTimeout(() => {
-      setGenerating(false);
-      setExplained(true);
-      setLastExplainTopic(currentTopic);
-      setFeed((prev) => [
-        { id: Date.now(), text: t("feed9", { topic: currentTopic }), time: nowTime() },
-        ...prev.slice(0, 5),
-      ]);
-    }, 2000);
-  }, [generating, currentTopic, t]);
-
-  const handleSendQuiz = useCallback(async () => {
-    setSentQuiz(true);
-    setFeed((prev) => [
-      {
-        id: Date.now(),
-        text: t("feed8", { n: 5, m: 2 }),
-        time: nowTime(),
-      },
-      ...prev.slice(0, 5),
-    ]);
-    await postAnalyticsAction(courseId, "quiz_answer");
-    setTimeout(() => setSentQuiz(false), 4000);
-  }, [t, courseId]);
+interface CourseWithTitle {
+  id: string;
+  title: string;
+  code: string;
+  professorName: string;
+}
 
   const integrationRows = [
     { label: t("recordLabel"), status: t("statusUploading"), tone: "text-slate-400 dark:text-zinc-400" },
@@ -272,13 +282,6 @@ export default function LiveLecturePageClient() {
     { label: t("aiNotes"), status: t("statusUpdated"), tone: "text-emerald-500 dark:text-emerald-300" },
     { label: t("quizResults"), status: t("statusEndOfClass"), tone: "text-slate-400 dark:text-zinc-300" },
   ];
-
-  interface CourseWithTitle {
-  id: string;
-  title: string;
-  code: string;
-  professorName: string;
-}
 
   const typedCourse = course as unknown as CourseWithTitle;
 

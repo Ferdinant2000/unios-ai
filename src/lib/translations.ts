@@ -429,6 +429,8 @@ const ru = {
   goToDashboard: "В кабинет преподавателя",
   loginRequiredTitle: "Требуется авторизация",
   professorOnlyTitle: "Только для преподавателей",
+  studentAccessText:
+    "Войдите в аккаунт студента или используйте демо-доступ, чтобы открыть кабинет.",
   loginRequiredText:
     "Эта страница доступна только для преподавателей. Войдите через Google — если email указан в списке преподавателей, кабинет откроется автоматически.",
   goToLogin: "Перейти ко входу",
@@ -815,6 +817,8 @@ const uz: Record<TranslationKey, string> = {
   goToDashboard: "O'qituvchi kabineti",
   loginRequiredTitle: "Avtorizatsiya talab qilinadi",
   professorOnlyTitle: "Faqat o'qituvchilar uchun",
+  studentAccessText:
+    "Kabinetni ochish uchun talaba hisobiga kiring yoki demo-kirishdan foydalaning.",
   loginRequiredText:
     "Bu sahifa faqat o'qituvchilar uchun. Google orqali kiring — email o'qituvchilar ro'yxatida bo'lsa, kabinet avtomatik ochiladi.",
   goToLogin: "Kirish sahifasiga o'tish",
@@ -1327,6 +1331,8 @@ const en: Record<TranslationKey, string> = {
   goToStudent: "Student dashboard",
   goToDashboard: "Professor dashboard",
   loginRequiredTitle: "Authentication required",
+  studentAccessText:
+    "Sign in as a student or use the demo account to open the dashboard.",
   professorOnlyTitle: "Professors only",
   loginRequiredText:
     "This page is available for professors only. Sign in with Google — if your email is in the professor list, the dashboard opens automatically.",
