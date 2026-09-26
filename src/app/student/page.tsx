@@ -19,6 +19,7 @@ import {
   Lightbulb,
   Target,
   ArrowUpRight,
+  Mic,
 } from "lucide-react";
 import {
   GlassCard,
@@ -184,6 +185,29 @@ export default function StudentDashboard() {
             </FadeIn>
           ))}
         </section>
+
+        {/* Voice Studio quick access */}
+        <FadeIn>
+          <Link
+            href="/student/voice-studio"
+            className="group flex w-full flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/70 bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-purple-600/10 p-4 backdrop-blur-md transition-all hover:scale-[1.005] hover:border-purple-500/40 dark:border-white/10 sm:flex-nowrap sm:p-5"
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg shadow-purple-500/30">
+                <Mic className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate font-bold text-slate-900 dark:text-white">
+                  {t("voiceStudioOpen")}
+                </p>
+                <p className="truncate text-xs text-slate-500 dark:text-zinc-400">
+                  {t("voiceStudioOpenHint")}
+                </p>
+              </div>
+            </div>
+            <ArrowUpRight className="h-5 w-5 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-violet-400 dark:text-zinc-500" />
+          </Link>
+        </FadeIn>
 
         {/* AI Recommendations */}
         {analytics?.recommendations && analytics.recommendations.length > 0 && (

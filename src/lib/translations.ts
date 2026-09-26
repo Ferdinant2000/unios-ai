@@ -517,6 +517,63 @@ const ru = {
   archiveLectureTitle: "Лекция из архива",
   audioTooLarge: "Аудиосегмент слишком большой — запись не сохранена",
   course: "Курс",
+
+  // Voice Studio (STT/TTS demo lab)
+  voiceStudioOpen: "Голосовая студия STT · TTS",
+  voiceStudioOpenHint: "Попробуй речь: распознавание, озвучка и живой диалог на 3 языках.",
+  voiceStudioTag: "Голосовая лаборатория",
+  voiceStudioTitle: "Голосовая студия UniOS",
+  voiceStudioSubtitle:
+    "Интерактивная демо-лаборатория STT + TTS для презентации. Всё работает в браузере — без базы данных.",
+  voiceStudioLang: "Язык голосового движка",
+
+  sttSectionTitle: "Распознавание речи (STT / Микрофон)",
+  sttSectionSub: "Говорите — UniOS превращает голос в текст в реальном времени.",
+  sttStart: "Говорить",
+  sttStop: "Остановить",
+  sttListening: "Слушаю…",
+  sttIdle: "Нажмите на микрофон и начните говорить",
+  sttResultPlaceholder: "Распознанная речь появится здесь…",
+  sttClear: "Очистить",
+  sttCopy: "Скопировать",
+  sttCopied: "Скопировано!",
+  sttSendToProfessor: "Отправить Профессору",
+  sttSentToProfessor: "Отправлено Профессору ✓",
+  sttMicError: "Нет доступа к микрофону. Разрешите доступ или используйте симулятор.",
+  sttNotSupported:
+    "Браузер не поддерживает распознавание речи — включён встроенный симулятор: задавайте вопрос текстом.",
+
+  ttsSectionTitle: "Озвучка и синтез (TTS / Professor Voice)",
+  ttsSectionSub: "Напишите текст — ИИ озвучит его голосом Профессора UniOS.",
+  ttsPlaceholder: "Введите текст для озвучки…",
+  ttsRate: "Скорость (Rate)",
+  ttsPitch: "Тон (Pitch)",
+  ttsVolume: "Громкость",
+  ttsPresetMale: "Мужской",
+  ttsPresetFemale: "Женский",
+  ttsPresetProfessor: "Профессор UniOS",
+  ttsPlay: "Play",
+  ttsPause: "Pause",
+  ttsResume: "Resume",
+  ttsStop: "Stop",
+  ttsSpeaking: "Озвучиваю…",
+  ttsPaused: "Пауза",
+  ttsNotSupported:
+    "Браузер не поддерживает синтез речи — включён визуальный симулятор (ответ печатается на экране).",
+
+  demoSectionTitle: "Живой диалог с ИИ-Профессором (Demo Loop)",
+  demoSectionSub:
+    "Задайте вопрос голосом — система распознает его, Профессор отвечает на том же языке и озвучивает ответ.",
+  demoStart: "Начать диалог",
+  demoStop: "Остановить",
+  demoListening: "Слушаю ваш вопрос…",
+  demoThinking: "ИИ-Профессор думает…",
+  demoTypeQuestion: "Введите вопрос текстом…",
+  demoSend: "Отправить",
+  demoReset: "Сбросить",
+  demoMicHint: "Нажмите «Начать диалог» и скажите вопрос голосом.",
+  demoYou: "Вы",
+  demoProfessor: "ИИ-Профессор UniOS",
 } as const;
 
 export type TranslationKey = keyof typeof ru;
@@ -964,6 +1021,63 @@ const uz: Record<TranslationKey, string> = {
   archiveLectureTitle: "Arxivdagi ma'ruza",
   audioTooLarge: "Audio segment juda katta — yozuv saqlanmadi",
   course: "Kurs",
+
+  // Voice Studio (STT/TTS demo lab)
+  voiceStudioOpen: "Ovozli studiya STT · TTS",
+  voiceStudioOpenHint: "Nutqni sinab ko'ring: tanish, ovoz chiqarish va 3 tilda jonli dialog.",
+  voiceStudioTag: "Ovoz laboratoriyasi",
+  voiceStudioTitle: "UniOS ovozli studiyasi",
+  voiceStudioSubtitle:
+    "Taqdimot uchun interaktiv STT + TTS demo-laboratoriya. Hammasi brauzerda ishlaydi — ma'lumotlar bazasisiz.",
+  voiceStudioLang: "Ovoz dvigateli tili",
+
+  sttSectionTitle: "Nutqni tanib olish (STT / Mikrofon)",
+  sttSectionSub: "Gapiring — UniOS ovozni real vaqtda matnga aylantiradi.",
+  sttStart: "Gapirish",
+  sttStop: "To'xtatish",
+  sttListening: "Eshitmoqdaman…",
+  sttIdle: "Mikrofonga bosing va gapirishni boshlang",
+  sttResultPlaceholder: "Tanish natija shu yerda paydo bo'ladi…",
+  sttClear: "Tozalash",
+  sttCopy: "Nusxalash",
+  sttCopied: "Nusxalandi!",
+  sttSendToProfessor: "Professorga yuborish",
+  sttSentToProfessor: "Professorga yuborildi ✓",
+  sttMicError: "Mikrofonga ruxsat yo'q. Ruxsat bering yoki simulyatordan foydalaning.",
+  sttNotSupported:
+    "Brauzer nutqni tanishni qo'llab-quvvatlamaydi — ichki simulyator yoqilgan: savolni matnda bering.",
+
+  ttsSectionTitle: "Ovoz chiqarish (TTS / Professor Voice)",
+  ttsSectionSub: "Matn yozing — uni AI UniOS professori ovozi bilan o'qiydi.",
+  ttsPlaceholder: "O'qiladigan matnni kiriting…",
+  ttsRate: "Tezlik (Rate)",
+  ttsPitch: "Ohang (Pitch)",
+  ttsVolume: "Ovoz balandligi",
+  ttsPresetMale: "Erkak",
+  ttsPresetFemale: "Ayol",
+  ttsPresetProfessor: "UniOS professori",
+  ttsPlay: "Play",
+  ttsPause: "Pause",
+  ttsResume: "Resume",
+  ttsStop: "Stop",
+  ttsSpeaking: "O'qiyapman…",
+  ttsPaused: "Pauza",
+  ttsNotSupported:
+    "Brauzer nutq sintezini qo'llab-quvvatlamaydi — vizual simulyator yoqilgan (javob ekranda yoziladi).",
+
+  demoSectionTitle: "AI-professor bilan jonli dialog (Demo Loop)",
+  demoSectionSub:
+    "Savolni ovoz bilan bering — tizim uni taniydi, professor xuddi shu tilda javob beradi va javobni ovozli aytadi.",
+  demoStart: "Dialogni boshlash",
+  demoStop: "To'xtatish",
+  demoListening: "Savolingizni eshitmoqdaman…",
+  demoThinking: "AI-professor o'ylamoqda…",
+  demoTypeQuestion: "Savolni matnda kiriting…",
+  demoSend: "Yuborish",
+  demoReset: "Tozalash",
+  demoMicHint: "«Dialogni boshlash» tugmasini bosing va savolni ayting.",
+  demoYou: "Siz",
+  demoProfessor: "AI-professor UniOS",
 
   // Login
   welcomeBack: "Qaytganingiz bilan",
@@ -1538,6 +1652,63 @@ const en: Record<TranslationKey, string> = {
   archiveLectureTitle: "Archived lecture",
   audioTooLarge: "Audio segment is too large — recording was not saved",
   course: "Course",
+
+  // Voice Studio (STT/TTS demo lab)
+  voiceStudioOpen: "Voice Studio STT · TTS",
+  voiceStudioOpenHint: "Try voice: recognition, synthesis and live dialogue in 3 languages.",
+  voiceStudioTag: "Voice Laboratory",
+  voiceStudioTitle: "UniOS Voice Studio",
+  voiceStudioSubtitle:
+    "Interactive STT + TTS demo lab for presentations. Everything runs in the browser — no database required.",
+  voiceStudioLang: "Speech engine language",
+
+  sttSectionTitle: "Speech Recognition (STT / Microphone)",
+  sttSectionSub: "Speak — UniOS turns your voice into text in real time.",
+  sttStart: "Speak",
+  sttStop: "Stop",
+  sttListening: "Listening…",
+  sttIdle: "Tap the microphone and start speaking",
+  sttResultPlaceholder: "Recognized speech will appear here…",
+  sttClear: "Clear",
+  sttCopy: "Copy",
+  sttCopied: "Copied!",
+  sttSendToProfessor: "Send to Professor",
+  sttSentToProfessor: "Sent to Professor ✓",
+  sttMicError: "Microphone access denied. Allow access or use the simulator.",
+  sttNotSupported:
+    "Your browser does not support speech recognition — built-in simulator enabled: type your question instead.",
+
+  ttsSectionTitle: "Speech Synthesis (TTS / Professor Voice)",
+  ttsSectionSub: "Type text — AI will read it aloud with the UniOS Professor voice.",
+  ttsPlaceholder: "Enter text to be read aloud…",
+  ttsRate: "Speed (Rate)",
+  ttsPitch: "Pitch",
+  ttsVolume: "Volume",
+  ttsPresetMale: "Male",
+  ttsPresetFemale: "Female",
+  ttsPresetProfessor: "UniOS Professor",
+  ttsPlay: "Play",
+  ttsPause: "Pause",
+  ttsResume: "Resume",
+  ttsStop: "Stop",
+  ttsSpeaking: "Speaking…",
+  ttsPaused: "Paused",
+  ttsNotSupported:
+    "Your browser does not support speech synthesis — visual simulator enabled (the answer types out on screen).",
+
+  demoSectionTitle: "Live Dialogue with AI Professor (Demo Loop)",
+  demoSectionSub:
+    "Ask a question by voice — the system recognizes it, the Professor answers in the same language and speaks the answer out loud.",
+  demoStart: "Start dialogue",
+  demoStop: "Stop",
+  demoListening: "Listening to your question…",
+  demoThinking: "AI Professor is thinking…",
+  demoTypeQuestion: "Type your question…",
+  demoSend: "Send",
+  demoReset: "Reset",
+  demoMicHint: "Press «Start dialogue» and ask your question by voice.",
+  demoYou: "You",
+  demoProfessor: "UniOS AI Professor",
 };
 
 export const translations: Record<Lang, Record<TranslationKey, string>> = {
