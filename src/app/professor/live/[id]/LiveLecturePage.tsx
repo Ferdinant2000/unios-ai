@@ -106,41 +106,6 @@ export default function LiveLecturePageClient() {
     return off;
   }, [courseId]);
 
-  if (!liveLoaded) {
-    return (
-      <main className="min-h-screen">
-        <Header showBack user={PROFESSOR} />
-        <div className="flex min-h-[60vh] items-center justify-center px-6">
-          <div className="glass p-8 text-center text-sm text-slate-400 dark:text-zinc-500">
-            {t("loading")}
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (liveLecture) {
-    return <LiveControlRoom lectureId={courseId} lecture={liveLecture} />;
-  }
-
-  if (!course) {
-    return (
-      <main className="min-h-screen">
-        <Header showBack user={PROFESSOR} />
-        <div className="flex min-h-[60vh] items-center justify-center px-6">
-          <div className="glass p-8 text-center">
-            <p className="font-bold text-slate-900 dark:text-white">
-              {t("courseNotFound")}
-            </p>
-            <Link href="/professor" className="btn-ghost mt-4">
-              {t("backToProfessor")}
-            </Link>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   const ringRadius = 62;
   const circumference = 2 * Math.PI * ringRadius;
   const comprehensionOffset = circumference * (1 - comprehension / 100);
@@ -176,6 +141,41 @@ export default function LiveLecturePageClient() {
     ]);
     setTimeout(() => setSentQuiz(false), 4000);
   }, [t]);
+
+  if (!liveLoaded) {
+    return (
+      <main className="min-h-screen">
+        <Header showBack user={PROFESSOR} />
+        <div className="flex min-h-[60vh] items-center justify-center px-6">
+          <div className="glass p-8 text-center text-sm text-slate-400 dark:text-zinc-500">
+            {t("loading")}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (liveLecture) {
+    return <LiveControlRoom lectureId={courseId} lecture={liveLecture} />;
+  }
+
+  if (!course) {
+    return (
+      <main className="min-h-screen">
+        <Header showBack user={PROFESSOR} />
+        <div className="flex min-h-[60vh] items-center justify-center px-6">
+          <div className="glass p-8 text-center">
+            <p className="font-bold text-slate-900 dark:text-white">
+              {t("courseNotFound")}
+            </p>
+            <Link href="/professor" className="btn-ghost mt-4">
+              {t("backToProfessor")}
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   const topics = [
     { name: t("topicCrossPrice"), meta: t("wrongAnswers") },

@@ -29,3 +29,5 @@ unios*.log
 
 # firebase cli cache
 .firebase/
+.vercel
+.env*

@@ -70,23 +70,6 @@ export default function LecturePage() {
     return off;
   }, [lectureId]);
 
-  if (!liveLoaded) {
-    return (
-      <main className="min-h-screen">
-        <Header showBack user={STUDENT} />
-        <div className="flex min-h-[60vh] items-center justify-center px-6">
-          <div className="glass p-8 text-center text-sm text-slate-400 dark:text-zinc-500">
-            {t("loading")}
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (liveLecture) {
-    return <LiveStudentView lectureId={lectureId} lecture={liveLecture} />;
-  }
-
   const [currentTime, setCurrentTime] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -143,6 +126,23 @@ export default function LecturePage() {
       ]);
     }
   }, [lecture, t]);
+
+  if (!liveLoaded) {
+    return (
+      <main className="min-h-screen">
+        <Header showBack user={STUDENT} />
+        <div className="flex min-h-[60vh] items-center justify-center px-6">
+          <div className="glass p-8 text-center text-sm text-slate-400 dark:text-zinc-500">
+            {t("loading")}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (liveLecture) {
+    return <LiveStudentView lectureId={lectureId} lecture={liveLecture} />;
+  }
 
   if (!lecture) {
     return (
@@ -423,24 +423,27 @@ export default function LecturePage() {
                 </div>
 
                 <div className="chat-scroll flex-1 space-y-4 overflow-y-auto px-5 py-4">
-                  {messages.map((message) => (
+                  {messages.map((message) => {
+                  if (!message) return null;
+                  const isUser = message.sender === "user";
+                  return (
                     <div
                       key={message.id}
                       className={cn(
                         "animate-fade-up flex",
-                        message.sender === "user" ? "justify-end" : "justify-start",
+                        isUser ? "justify-end" : "justify-start",
                       )}
                     >
                       <div
                         className={cn(
                           "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
-                          message.sender === "user"
+                          isUser
                             ? "rounded-br-md bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-purple-500/20"
                             : "rounded-bl-md border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-200",
                         )}
                       >
-                        <p>{message.text}</p>
-                        {message.timestampRef && (
+                        <p>{message?.text}</p>
+                        {message?.timestampRef ? (
                           <button
                             onClick={() => seekTo(message.timestampRef!)}
                             className="mt-2 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-2.5 py-1 text-[11px] font-bold text-white shadow-md shadow-purple-500/20 transition-transform active:scale-95"
@@ -448,10 +451,11 @@ export default function LecturePage() {
                             <Play className="h-3 w-3" />
                             {t("fragmentAt", { time: message.timestampRef })}
                           </button>
-                        )}
+                        ) : null}
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
 
                   {loading && typingShown ? (
                     <div className="animate-fade-up flex justify-start">
