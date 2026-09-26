@@ -75,6 +75,13 @@ export function createSpeechRecognition(opts: {
   rec.onend = () => opts.onEnd?.();
   rec.onerror = (event) => opts.onError?.(event.error);
 
+  try {
+    rec.start();
+  } catch {
+    opts.onError?.("not-allowed");
+    return null;
+  }
+
   return {
     supported: true,
     stop: () => {
