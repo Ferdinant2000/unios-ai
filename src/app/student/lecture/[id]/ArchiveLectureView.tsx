@@ -7,7 +7,6 @@ import {
   useRef,
   useState,
 } from "react";
-import Link from "next/link";
 import {
   BookOpen,
   Clock,
@@ -46,9 +45,11 @@ import {
   deleteLiveSection,
   markSectionListened,
   subscribeLiveLecture,
+  subscribeLectureData,
   subscribeSections,
   updateLiveSection,
 } from "@/lib/live";
+import { buildDemoArchive, normalizeSection } from "@/lib/demo-archive";
 import { createMicRecorder, isRecorderSupported } from "@/lib/recorder";
 import { getCurrentUserId } from "@/lib/firebase";
 
@@ -84,14 +85,15 @@ export default function ArchiveLectureView({
   lectureId: string;
   canEdit?: boolean;
 }) {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
 
   const [lecture, setLecture] = useState<LiveLecture | null>(null);
   const [localArchive, setLocalArchive] = useState<
     { lecture: LiveLecture; sections: LiveSection[] } | null
   >(null);
   const [sections, setSections] = useState<LiveSection[]>([]);
-  const [notFound, setNotFound] = useState(false);
+  const [persistedSections, setPersistedSections] = useState<LiveSection[] | null>(null);
+  const [ready, setReady] = useState(false);
 
   const canEdit = canEditProp && !localArchive;
 
@@ -103,31 +105,45 @@ export default function ArchiveLectureView({
       }
     });
     const offSections = subscribeSections(lectureId, setSections);
+    const offPersisted = subscribeLectureData(lectureId, setPersistedSections);
     return () => {
       offLecture();
       offSections();
+      offPersisted();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lectureId]);
 
-  // Проверка: если лекции нет ни в live, ни в моках — показать «не найдено»
+  // Гарантированный рендер: даже без live-записи и моков страница
+  // показывает демо-архив, а не бесконечную загрузку.
   useEffect(() => {
-    if (!lecture && !localArchive) {
-      const timer = window.setTimeout(() => setNotFound(true), 4000);
-      return () => window.clearTimeout(timer);
-    }
-    if (lecture || localArchive) setNotFound(false);
-  }, [lecture, localArchive]);
+    const raf = window.requestAnimationFrame(() => setReady(true));
+    return () => window.cancelAnimationFrame(raf);
+  }, []);
 
-  const allSections = useMemo(
-    () =>
-      [...(localArchive ? localArchive.sections : sections)].sort(
-        (a, b) => a.timestamp - b.timestamp,
-      ),
-    [sections, localArchive],
+  // Демо-архив (3–4 секции про ИИ + синтезированное аудио) — чтобы страница
+  // никогда не оставалась пустой во время презентации.
+  const fallbackArchive = useMemo(
+    () => buildDemoArchive(lectureId, lang),
+    [lectureId, lang],
   );
 
-  const activeLecture = lecture ?? localArchive?.lecture ?? null;
+  const allSections = useMemo(
+    () => {
+      const persisted =
+        persistedSections && persistedSections.length > 0 ? persistedSections : null;
+      const live = localArchive ? localArchive.sections : sections;
+      const liveSections = live && live.length > 0 ? live : null;
+      const source = persisted ?? liveSections ?? fallbackArchive.sections;
+      return source
+        .map((section) => normalizeSection(section))
+        .filter((section): section is LiveSection => section !== null)
+        .sort((a, b) => a.timestamp - b.timestamp);
+    },
+    [persistedSections, sections, localArchive, fallbackArchive],
+  );
+
+  const activeLecture = lecture ?? localArchive?.lecture ?? fallbackArchive.lecture;
 
   // ---------------- Player ----------------
   const baseTime = allSections[0]?.timestamp ?? 0;
@@ -444,31 +460,13 @@ export default function ArchiveLectureView({
   const suggestedQuestions = [t("sugQ1"), t("sugQ2"), t("sugQ3")];
 
   // ---------------- Render ----------------
-  if (!lecture && !localArchive) {
+  if (!ready) {
     return (
       <main className="min-h-screen">
         <Header showBack user={STUDENT} />
         <div className="flex min-h-[60vh] items-center justify-center px-6">
           <div className="glass p-8 text-center text-sm text-slate-400 dark:text-zinc-500">
             {t("loading")}
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (notFound && !activeLecture) {
-    return (
-      <main className="min-h-screen">
-        <Header showBack user={STUDENT} />
-        <div className="flex min-h-[60vh] items-center justify-center px-6">
-          <div className="glass p-8 text-center">
-            <p className="font-bold text-slate-900 dark:text-white">
-              {t("lectureNotFound")}
-            </p>
-            <Link href="/student" className="btn-ghost mt-4">
-              {t("backToDashboard")}
-            </Link>
           </div>
         </div>
       </main>

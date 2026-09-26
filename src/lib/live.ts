@@ -74,6 +74,11 @@ const lsSectionsKey = (id: string) => `${LIVE_PREFIX}:sections:${id}`;
 const lsAttendeesKey = (id: string) => `${LIVE_PREFIX}:attendees:${id}`;
 const LS_INDEX = `${LIVE_PREFIX}:lectures`;
 
+// Персистентное зеркало секций лекции: Blob-URL не переживает навигацию,
+// поэтому записанное аудио хранится как Data URL (base64) под этим ключом
+// и читается на странице студента /student/lecture/[id].
+const lsLectureDataKey = (id: string) => `unios:lecture:${id}:data`;
+
 const isClientSide = () => typeof window !== "undefined";
 
 function lsGet<T>(key: string, fallback: T): T {
@@ -416,11 +421,9 @@ export async function addLiveSection(
       },
       async () => {
         const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
-        const section: LiveSection = {
-          id: `sec-${now}`,
-          ...data,
-        };
-        lsSet(lsSectionsKey(lectureId), [...sections, section]);
+        const next = [...sections, section];
+        lsSet(lsSectionsKey(lectureId), next);
+        persistLectureData(lectureId, next);
         demoEmit(`sections:${lectureId}`);
       },
     );
@@ -430,7 +433,9 @@ export async function addLiveSection(
     id: `sec-${now}`,
     ...data,
   };
-  lsSet(lsSectionsKey(lectureId), [...sections, section]);
+  const next = [...sections, section];
+  lsSet(lsSectionsKey(lectureId), next);
+  persistLectureData(lectureId, next);
   demoEmit(`sections:${lectureId}`);
 }
 
@@ -452,6 +457,7 @@ export async function updateLiveSection(
           section.id === sectionId ? { ...section, ...patch } : section,
         );
         lsSet(lsSectionsKey(lectureId), next);
+        persistLectureData(lectureId, next);
         demoEmit(`sections:${lectureId}`);
       },
     );
@@ -461,6 +467,7 @@ export async function updateLiveSection(
     section.id === sectionId ? { ...section, ...patch } : section,
   );
   lsSet(lsSectionsKey(lectureId), next);
+  persistLectureData(lectureId, next);
   demoEmit(`sections:${lectureId}`);
 }
 
@@ -477,19 +484,17 @@ export async function deleteLiveSection(
       },
       async () => {
         const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
-        lsSet(
-          lsSectionsKey(lectureId),
-          sections.filter((section) => section.id !== sectionId),
-        );
+        const next = sections.filter((section) => section.id !== sectionId);
+        lsSet(lsSectionsKey(lectureId), next);
+        persistLectureData(lectureId, next);
         demoEmit(`sections:${lectureId}`);
       },
     );
   }
   const sections = lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
-  lsSet(
-    lsSectionsKey(lectureId),
-    sections.filter((section) => section.id !== sectionId),
-  );
+  const next = sections.filter((section) => section.id !== sectionId);
+  lsSet(lsSectionsKey(lectureId), next);
+  persistLectureData(lectureId, next);
   demoEmit(`sections:${lectureId}`);
 }
 
@@ -779,4 +784,32 @@ export async function listSections(lectureId: string): Promise<LiveSection[]> {
     );
   }
   return lsGet<LiveSection[]>(lsSectionsKey(lectureId), []);
+}
+
+/**
+ * Сохранить секции лекции в персистентное зеркало localStorage.
+ * Может быть вызвано по желанию — все мутации секций уже вызывают его внутри.
+ */
+export function persistLectureData(lectureId: string, sections: LiveSection[]): void {
+  if (!isClientSide()) return;
+  lsSet(lsLectureDataKey(lectureId), sections);
+}
+
+/** Прочитать сохранённые секции лекции (или null, если записи нет). */
+export function loadLectureData(lectureId: string): LiveSection[] | null {
+  return lsGet<LiveSection[] | null>(lsLectureDataKey(lectureId), null);
+}
+
+/** Подписка на персистентное зеркало секций (для страницы архива). */
+export function subscribeLectureData(
+  lectureId: string,
+  cb: (sections: LiveSection[] | null) => void,
+): Unsub {
+  if (!isClientSide()) return () => {};
+  ensureStorageListener();
+  const off = demoOn(`sections:${lectureId}`, () => {
+    cb(loadLectureData(lectureId));
+  });
+  cb(loadLectureData(lectureId));
+  return off;
 }
